@@ -1,0 +1,10 @@
+﻿Setting Name,Value,Description (Optional)
+Source File,img_Report.csv,"Name of the data file (e.g., Source.csv or Img_Report.csv)"
+Output Folder,Processed_Images,Name of the folder to save images
+Target Width,670,Width in pixels
+Target Height,670,Height in pixels
+Max File Size MB,1,Max size in MB
+Operation Mode,1,1 = Rename Only. 2 = Resize and Rename (Default).
+Manual Sizing,1,1 = Use Target Width/Height. 0 = Use Auto Logic.
+Property Type,Legacy,MVC or Legacy
+Optimized Suffix,0,"1 = Add 'Optimized' to filename, 0 = Do not add."

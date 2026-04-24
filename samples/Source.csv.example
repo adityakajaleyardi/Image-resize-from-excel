@@ -1,0 +1,4 @@
+Property/Company Code,Property Name,File Name,iType,Order,Doc. Type,Floorplan Code,Active/Inactive,Full Path,Target Property,Target Image Name
+p0054387,Example Property,example-apartment-bedroom.jpg,40,1,PHOTO GALLERY,,Active,https://www.rentcafe.com/dmslivecafe/3/50651/example-apartment-bedroom.jpg,,
+p0054388,Another Property,another-property-kitchen.jpg,40,2,PHOTO GALLERY,,Active,https://www.rentcafe.com/dmslivecafe/3/50652/another-property-kitchen.jpg,,
+p0054389,Third Property,third-property-floorplan.jpg,120,1,FLOOR PLAN,,Active,https://www.rentcafe.com/dmslivecafe/3/50653/third-property-floorplan.jpg,,

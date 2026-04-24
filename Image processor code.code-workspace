@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"/^powershell -Command \"Get-Content 'c:\\\\Users\\\\ak33408\\\\Desktop\\\\Python\\\\Images from excel\\\\Image processor code\\\\source\\.csv' \\| wc -l\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			}
+		}
+	}
+}

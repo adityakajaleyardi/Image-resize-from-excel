@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-processor"
+version = "4.2"
+description = "Professional batch image processor with intelligent resizing and organization"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Graphics :: Image Processing",
+    "Topic :: Utilities",
+]
+keywords = ["image", "processing", "batch", "resize", "photography", "automation"]
+
+dependencies = [
+    "pandas>=1.3.0",
+    "openpyxl>=3.6.0",
+    "Pillow>=8.3.0",
+    "requests>=2.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.0",
+    "black>=21.0",
+    "flake8>=3.9.0",
+    "pytest-cov>=2.12.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/image-processor"
+Documentation = "https://github.com/yourusername/image-processor/blob/main/README.md"
+Repository = "https://github.com/yourusername/image-processor.git"
+"Bug Tracker" = "https://github.com/yourusername/image-processor/issues"
+
+[tool.setuptools]
+packages = []
+
+[tool.black]
+line-length = 120
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

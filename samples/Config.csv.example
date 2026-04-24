@@ -1,0 +1,9 @@
+sourcefile,Source.csv
+outputfolder,Processed_Images
+propertytype,MVC
+operationmode,2
+targetwidth,2560
+targetheight,1707
+maxfilesizemb,1.0
+manualsizing,0
+optimizedsuffix,0

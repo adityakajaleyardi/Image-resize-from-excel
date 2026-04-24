@@ -1,2 +1,24 @@
-# Auto detect text files and perform LF normalization
+# Git Attributes
+# Ensure consistent line endings across platforms
+
 * text=auto
+
+# Source code
+*.py text eol=lf
+*.csv text eol=crlf
+*.txt text eol=lf
+*.md text eol=lf
+
+# Binary files
+*.jpg binary
+*.png binary
+*.gif binary
+*.xlsx binary
+*.exe binary
+
+# Declare files that should always have CRLF line endings (for Windows)
+*.bat text eol=crlf
+
+# Declare files that should always have LF line endings
+*.sh text eol=lf
+.gitignore text eol=lf
