@@ -26,7 +26,9 @@ from .constants import (
     DOWNLOAD_TIMEOUT_SECONDS,
     FALLBACK_DOMAINS,
     PRIMARY_DOMAIN,
+    describe_allowed_hosts,
     get_target_box,
+    is_download_url_allowed,
 )
 from .images import compress_and_save, resize_to_box
 from .naming import build_auto_filename, clean_string, sanitise_target_image_name
@@ -391,15 +393,30 @@ def _candidate_urls(raw_url: str, property_code: str, hmy_lookup: dict[str, str]
 
 
 def _download(session: requests.Session, urls: Sequence[str]) -> requests.Response:
-    """Try each URL as given, then against the CDN fallback domains."""
-    for url in urls:
-        for candidate in _url_variants(url):
-            try:
-                response = session.get(candidate, timeout=DOWNLOAD_TIMEOUT_SECONDS)
-            except requests.RequestException:
-                continue
-            if response.status_code == 200:
-                return response
+    """Try each permitted URL as given, then against the CDN fallback domains.
+
+    Addresses outside the allowed domains are never requested. The URLs come
+    from an uploaded file, so without this the server would fetch anything a
+    user asked it to, from inside the network.
+    """
+    permitted = [
+        candidate for url in urls for candidate in _url_variants(url) if is_download_url_allowed(candidate)
+    ]
+
+    if not permitted:
+        host = urllib.parse.urlsplit(urls[0]).hostname or "that address"
+        raise ProcessingError(
+            f"Downloads from {host} are not allowed. Images must come from {describe_allowed_hosts()}."
+        )
+
+    for candidate in permitted:
+        try:
+            response = session.get(candidate, timeout=DOWNLOAD_TIMEOUT_SECONDS)
+        except requests.RequestException:
+            continue
+        if response.status_code == 200:
+            return response
+
     raise ProcessingError("The file could not be downloaded. It returned an error or timed out.")
 
 

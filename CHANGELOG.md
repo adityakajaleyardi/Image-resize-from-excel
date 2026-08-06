@@ -18,6 +18,9 @@ one person hosts the app and everyone else opens it in a browser over the intern
 - Uploaded CSVs are checked before the run starts, so a misnamed column produces one clear message
   naming every column that is missing, rather than a run that fails on every row
 - Help page documenting the required columns, doc types and sizing rules, with template downloads
+- Downloads are restricted to `rentcafe.com` and its subdomains. The URLs come from an uploaded
+  file, so without this anyone able to reach the server could make it request arbitrary addresses
+  from inside the network. Extend with `IMAGE_PROCESSOR_EXTRA_HOSTS` if another source is needed.
 - Isolated workspace per run, a two job queue, and automatic deletion after 24 hours
 - `scripts/start_server.ps1` and `.bat`, which start the server and print the link to share
 - Test suite pinning the filename and dimension rules, and a CI workflow running ruff and pytest

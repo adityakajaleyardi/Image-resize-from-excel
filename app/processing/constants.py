@@ -6,6 +6,9 @@ by the engine depend directly on them, so they must not be changed casually.
 
 from __future__ import annotations
 
+import os
+import urllib.parse
+
 OPERATION_MODE_RENAME_ONLY = 1
 OPERATION_MODE_RESIZE = 2
 
@@ -16,6 +19,44 @@ PRIMARY_DOMAIN = "www.rentcafe.com"
 FALLBACK_DOMAINS = ("cdngeneral.rentcafe.com", "cdngeneralcf.rentcafe.com")
 
 DOWNLOAD_TIMEOUT_SECONDS = 15
+
+ALLOWED_URL_SCHEMES = ("http", "https")
+
+
+def _load_allowed_hosts() -> tuple[str, ...]:
+    """Domains images may be downloaded from.
+
+    The app fetches URLs supplied by whoever uploads the CSV, so without this
+    restriction anyone who can reach the server could make the host request
+    arbitrary addresses on the internal network. Set IMAGE_PROCESSOR_EXTRA_HOSTS
+    to a comma separated list to permit additional sources.
+    """
+    hosts = ["rentcafe.com"]
+    extra = os.environ.get("IMAGE_PROCESSOR_EXTRA_HOSTS", "")
+    hosts.extend(host.strip().lower() for host in extra.split(",") if host.strip())
+    return tuple(hosts)
+
+
+ALLOWED_HOST_SUFFIXES: tuple[str, ...] = _load_allowed_hosts()
+
+
+def is_download_url_allowed(url: str) -> bool:
+    """True when a URL uses a permitted scheme and sits on a permitted domain."""
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme.lower() not in ALLOWED_URL_SCHEMES:
+        return False
+
+    hostname = (parts.hostname or "").lower().rstrip(".")
+    if not hostname:
+        return False
+
+    # Compared as a whole label, so "notrentcafe.com" does not match "rentcafe.com".
+    return any(hostname == allowed or hostname.endswith("." + allowed) for allowed in ALLOWED_HOST_SUFFIXES)
+
+
+def describe_allowed_hosts() -> str:
+    return ", ".join(ALLOWED_HOST_SUFFIXES)
+
 
 # Fraction trimmed from the top and the bottom of a portrait image before it is
 # scaled down, so the subject is not squeezed into a landscape target box.

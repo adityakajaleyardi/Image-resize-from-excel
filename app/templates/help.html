@@ -49,6 +49,11 @@
     <li>Rows with <code>Active/Inactive</code> set to <code>Inactive</code> are skipped.</li>
     <li>Images are saved into a folder named <code>TargetProperty__DocType</code>.</li>
     <li>If a download fails, the run continues and the row is listed in the failed log.</li>
+    <li>
+      <code>Full Path</code> must point at <strong>{{ allowed_hosts }}</strong>.
+      Addresses anywhere else are refused without being contacted, so the server cannot be
+      used to reach other machines on the network.
+    </li>
   </ul>
 
   <p><a class="button button-ghost" href="/api/templates/source">Download source template</a></p>
@@ -139,6 +144,8 @@
     <dd>A column name does not match exactly. Compare yours against the template, watching for a missing full stop in <code>Doc. Type</code>.</dd>
     <dt>Rows fail with "could not be downloaded"</dt>
     <dd>The URL in <code>Full Path</code> is wrong, or the image has been removed. The processor also retries the CDN addresses before giving up.</dd>
+    <dt>Rows fail with "downloads from ... are not allowed"</dt>
+    <dd>The URL points somewhere other than {{ allowed_hosts }}. Only those domains can be downloaded from. Ask whoever hosts the app if you need another source added.</dd>
     <dt>The download is missing images</dt>
     <dd>Check the process log in the ZIP. Every row is listed there with either its new path or the reason it failed.</dd>
     <dt>Files are larger than expected</dt>

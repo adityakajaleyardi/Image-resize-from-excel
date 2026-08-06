@@ -21,6 +21,22 @@ SOURCE_HEADER = (
 )
 
 
+@pytest.fixture(autouse=True)
+def allow_the_test_server(monkeypatch):
+    """Permit downloads from the local test server.
+
+    Only rentcafe.com is allowed by default, which is the point of the
+    restriction, so tests have to opt the fixture server in explicitly.
+    """
+    from app.processing import constants
+
+    monkeypatch.setattr(
+        constants,
+        "ALLOWED_HOST_SUFFIXES",
+        (*constants.ALLOWED_HOST_SUFFIXES, "127.0.0.1"),
+    )
+
+
 @pytest.fixture(scope="session")
 def image_server(tmp_path_factory) -> str:
     """Serve a landscape, a portrait and a small image, and return the base URL."""

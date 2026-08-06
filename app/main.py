@@ -19,7 +19,7 @@ from . import __version__
 from .jobs import Job, job_manager
 from .processing import ProcessingConfig, ValidationError
 from .processing.config import FIELD_DESCRIPTIONS, WEB_EDITABLE_FIELDS
-from .processing.constants import DOC_TYPE_MAPPING
+from .processing.constants import DOC_TYPE_MAPPING, describe_allowed_hosts
 from .processing.engine import PROCESS_LOG_NAME
 from .processing.validation import (
     HMY_CODE_COLUMNS,
@@ -90,6 +90,7 @@ async def help_page(request: Request):
             "hmy_code_columns": HMY_CODE_COLUMNS,
             "hmy_id_columns": HMY_ID_COLUMNS,
             "doc_types": sorted(DOC_TYPE_MAPPING.items()),
+            "allowed_hosts": describe_allowed_hosts(),
             "version": __version__,
         },
     )

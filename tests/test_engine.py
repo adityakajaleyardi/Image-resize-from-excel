@@ -159,6 +159,42 @@ class TestPropertyMapping:
         assert any(event.level == "warning" for event in events)
 
 
+class TestDownloadRestrictions:
+    """The URLs come from an uploaded file, so the server must not fetch just anything."""
+
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "http://169.254.169.254/latest/meta-data/",
+            "http://internal-intranet/reports/secret.jpg",
+            "http://localhost:8000/api/config/default",
+            "file:///C:/Windows/win.ini",
+            "http://notrentcafe.com/photo.jpg",
+            "http://rentcafe.com.attacker.example/photo.jpg",
+        ],
+    )
+    def test_addresses_outside_the_allowed_domains_are_refused(self, write_source, tmp_path, url):
+        source = write_source([f"p001,Ridgecrest,x.jpg,40,1,PHOTO GALLERY,,Active,{url},,"])
+        summary, events = collect(source, tmp_path / "out")
+
+        assert summary.failed == 1
+        assert any("not allowed" in event.message for event in events)
+
+    def test_the_primary_domain_and_its_subdomains_are_allowed(self):
+        from app.processing.constants import is_download_url_allowed
+
+        assert is_download_url_allowed("https://www.rentcafe.com/dmslivecafe/3/1/a.jpg")
+        assert is_download_url_allowed("https://cdngeneral.rentcafe.com/a.jpg")
+        assert is_download_url_allowed("https://rentcafe.com/a.jpg")
+
+    def test_an_extra_host_can_be_permitted_for_a_deployment(self, monkeypatch):
+        from app.processing import constants
+
+        monkeypatch.setattr(constants, "ALLOWED_HOST_SUFFIXES", ("images.example.com",))
+        assert constants.is_download_url_allowed("https://images.example.com/a.jpg")
+        assert not constants.is_download_url_allowed("https://www.rentcafe.com/a.jpg")
+
+
 class TestLogs:
     def test_the_process_log_records_paths_relative_to_the_output(self, write_source, tmp_path, image_server):
         source = write_source(

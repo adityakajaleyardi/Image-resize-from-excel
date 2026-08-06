@@ -45,6 +45,11 @@ point depends on that package standing alone.
 **Report progress with the `on_event` callback, never `print`.** The engine does not know whether
 it is running under the web app or the terminal.
 
+**Downloads are restricted to an allowlist and must stay that way.** URLs come from a file any
+user can upload, so `is_download_url_allowed` in `constants.py` is what stops the server being
+used to reach other machines on the internal network. Do not bypass it, and do not widen it to a
+plain `endswith` check, which would match `notrentcafe.com`.
+
 **Never commit real property data.** Live property codes, ids or URLs stay out of the repository.
 `Config.csv`, `Img_Report.csv`, `PropertyHMY.csv` and `data/` are gitignored already.
 

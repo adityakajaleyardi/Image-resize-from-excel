@@ -54,12 +54,15 @@ The host machine must stay on and the window must stay open for the app to be re
 ### Notes on hosting
 
 - There is no login. Anyone who can reach the address can use it, which is the intent for an
-  internal tool on a trusted network.
+  internal tool on a trusted network. Do not expose the port to the internet.
+- Downloads are restricted to `rentcafe.com`, so the server cannot be pointed at other machines
+  on your network. See [Downloads](#downloads).
 - Two runs execute at a time; further runs queue.
 - Everything a run produces lives under `data/jobs/` and is deleted after 24 hours.
 
 Environment variables, if you need them: `IMAGE_PROCESSOR_DATA_DIR`,
-`IMAGE_PROCESSOR_MAX_CONCURRENT_JOBS`, `IMAGE_PROCESSOR_JOB_RETENTION_HOURS`.
+`IMAGE_PROCESSOR_MAX_CONCURRENT_JOBS`, `IMAGE_PROCESSOR_JOB_RETENTION_HOURS`,
+`IMAGE_PROCESSOR_EXTRA_HOSTS`.
 
 ## Using the app
 
@@ -165,6 +168,11 @@ Each URL is tried as given. If it is on `www.rentcafe.com` the CDN mirrors
 is supplied, `p-code` URLs are also retried with the path rewritten to the mapped property id.
 
 A row that cannot be downloaded is recorded and the run continues.
+
+**Only `rentcafe.com` and its subdomains can be downloaded from.** URLs come from a file that any
+user can upload, so without this the server would fetch whatever it was told to, from its position
+inside the network. Anything else is refused without being contacted. To permit another source,
+set `IMAGE_PROCESSOR_EXTRA_HOSTS` to a comma separated list of domains before starting the server.
 
 ## Command line use
 
