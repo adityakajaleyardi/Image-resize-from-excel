@@ -1,159 +1,65 @@
-# Contributing to Image Processor
+# Contributing
 
-Thank you for your interest in contributing! This document provides guidelines and instructions for contributing.
+## Setup
 
-## Code of Conduct
-
-- Be respectful and inclusive
-- Provide constructive feedback
-- Focus on code, not the coder
-- Help others learn and grow
-
-## Getting Started
-
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/image-processor.git`
-3. Create a feature branch: `git checkout -b feature/your-feature-name`
-4. Create a virtual environment: `python -m venv venv`
-5. Activate it: `source venv/bin/activate` (Windows: `venv\Scripts\activate`)
-6. Install dependencies: `pip install -r requirements.txt`
-
-## Development Workflow
-
-### Before Coding
-- Check existing issues/PRs to avoid duplicates
-- Create an issue to discuss major changes
-- For small fixes, you can go straight to PR
-
-### While Coding
-- Follow PEP 8 style guide
-- Add comments for complex logic
-- Keep functions focused and testable
-- Update docstrings
-- Add/update tests as needed
-
-### Code Style
-- Use meaningful variable names
-- Maximum line length: 120 characters
-- Use type hints where practical
-- Follow existing code patterns
-
-## Testing
-
-Before submitting:
 ```bash
-# Run linting
-flake8 image_processor.py
-
-# Format code (optional)
-black image_processor.py
-
-# Test the script with sample data
-python image_processor.py
+git clone https://github.com/adityakajaleyardi/Image-resize-from-excel.git
+cd Image-resize-from-excel
+python -m venv .venv
+.venv\Scripts\activate          # macOS and Linux: source .venv/bin/activate
+pip install -r requirements.txt
+pip install pytest httpx ruff
 ```
 
-## Commit Messages
+Run the app with reload while working on it:
 
-Write clear commit messages:
-```
-feat: Add new image format support (XYZ)
-fix: Correct timeout issue in URL download
-docs: Update README with new configuration option
-refactor: Simplify naming logic
-test: Add unit tests for image resizing
+```bash
+python -m uvicorn app.main:app --reload
 ```
 
-Format: `[type]: [description]`
+## Before you open a pull request
 
-Types:
-- `feat` - New feature
-- `fix` - Bug fix
-- `docs` - Documentation changes
-- `refactor` - Code refactoring
-- `test` - Adding/updating tests
-- `perf` - Performance improvements
-- `chore` - Build/dependency updates
-
-## Pull Request Process
-
-1. Update README.md with any new features or changes
-2. Update CHANGELOG.md with version and changes
-3. Ensure code passes linting and formatting checks
-4. Provide clear description of changes
-5. Link related issues
-6. Request review from maintainers
-
-### PR Description Template
-
-```markdown
-## Description
-Brief description of the changes.
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Documentation update
-- [ ] Performance improvement
-
-## Related Issues
-Fixes #(issue number)
-
-## Testing Done
-Describe how you tested the changes.
-
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Documentation updated
-- [ ] No breaking changes
-- [ ] Tested with sample data
+```bash
+ruff check .
+ruff format .
+pytest
 ```
 
-## Reporting Issues
+CI runs the same three commands on Python 3.10 and 3.13.
 
-When reporting bugs, include:
-- Python version
-- Operating system
-- Steps to reproduce
-- Expected behavior
-- Actual behavior
-- Sample data (if possible, anonymized)
-- Error messages and logs
+## Things to know before changing code
 
-## Feature Requests
+**Output filenames and image dimensions are a contract.** Downstream systems match on them.
+The rules live in `app/processing/naming.py` and `app/processing/constants.py` and are pinned by
+`tests/test_naming.py` and `tests/test_images.py`. Do not change them unless that is the point of
+the change, and say so explicitly in the pull request.
 
-When suggesting features:
-- Clear description of the feature
-- Use cases and examples
-- Expected behavior
-- Potential implementation approach
+**`app/processing/` must not import FastAPI** or anything else web related. The command line entry
+point depends on that package standing alone.
 
-## Documentation
+**Report progress with `on_event`, not `print`.** The engine has no idea whether it is running
+under the web app or the command line.
 
-- Keep README.md updated
-- Add docstrings to functions
-- Comment complex logic
-- Document configuration options
-- Include usage examples
+**Adding a setting** means touching `ProcessingConfig`, `FIELD_DESCRIPTIONS` and
+`WEB_EDITABLE_FIELDS` in `app/processing/config.py`, the form in `app/templates/index.html`, the
+field list in `app/static/app.js`, the route in `app/main.py`, and `samples/Config.csv`.
 
-## Release Process
+**Never commit real property data.** Anything with live property codes, ids or URLs stays out of
+the repository. `Config.csv`, `Img_Report.csv`, `PropertyHMY.csv` and `data/` are already ignored.
 
-Maintainers will:
-1. Review and merge PRs
-2. Update version numbers
-3. Update CHANGELOG.md
-4. Create GitHub release
-5. Update documentation
+## Style
 
-## Questions?
+- Ruff handles formatting and linting; the configuration is in `pyproject.toml`.
+- Type hints on anything non-obvious.
+- Comment intent and constraints, not what the next line does.
 
-- Open an issue for questions
-- Check existing documentation
-- Look at similar implementations in code
+## Commit messages
 
-## Recognition
+`type: short description in the imperative`, where type is one of `feat`, `fix`, `docs`,
+`refactor`, `test`, `perf` or `chore`. Explain in the body why the change was needed, not what the
+diff already shows.
 
-Contributors will be recognized in:
-- CHANGELOG.md
-- Contributors section (TBD)
+## Reporting a problem
 
-Thank you for contributing! 🎉
+Include the Python version, what you did, what you expected, what happened, and the relevant part
+of the process log with any property data removed.

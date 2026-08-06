@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-08-06
+
+The tool is now a web app. Colleagues cannot run an unsigned executable on a company laptop, so
+one person hosts the app and everyone else opens it in a browser over the internal network.
+
+### Added
+- Web interface: upload the source export, edit the settings on screen, watch progress line by
+  line, cancel mid-run, and download the results as a ZIP
+- Settings are pre-filled from a saved default and can be changed for a single run, or saved as
+  the new default
+- Uploaded CSVs are checked before the run starts, so a misnamed column produces one clear message
+  naming every column that is missing, rather than a run that fails on every row
+- Help page documenting the required columns, doc types and sizing rules, with template downloads
+- Isolated workspace per run, a two job queue, and automatic deletion after 24 hours
+- `scripts/start_server.ps1` and `.bat`, which start the server and print the link to share
+- Test suite pinning the filename and dimension rules, and a CI workflow running ruff and pytest
+
+### Changed
+- `image_processor.py` split into `app/processing`, where the engine takes explicit paths and
+  reports progress through a callback instead of resolving paths against the working directory and
+  printing. Filenames and image dimensions are unchanged.
+- `cli.py` replaces `image_processor.py` for command line use, with the same default behaviour plus
+  `--source`, `--config`, `--output`, `--property-map` and `--no-pause`
+- Process log records paths relative to the output folder, so they make sense inside the ZIP
+- CDN mirrors are no longer tried for URLs that are not on the primary domain, which stops three
+  identical requests being made for every failing non-RentCafe URL
+- Minimum Python version is now 3.10
+
+### Fixed
+- A missing source file was silently ignored when no property mapping file was present, because
+  the check sat inside the mapping file branch
+- Logged row numbers were one higher than the spreadsheet line they referred to
+- Bare `except:` clauses that swallowed real errors, including `KeyboardInterrupt`
+- Leftover debug output printing every rewritten p-code URL
+- `openpyxl>=3.6.0` in requirements.txt, a version that does not exist
+
+### Removed
+- `Config.csv`, `Img_Report.csv` and `PropertyHMY.csv` are no longer tracked. They hold real
+  property data and belong on the operator's machine. Templates with dummy data are in `samples/`.
+- `GITHUB_SETUP_GUIDE.md` and `REPOSITORY_STRUCTURE.md`, one-off checklists the README now covers
+
 ## [4.2] - 2026-03-31
 
 ### Added
@@ -106,12 +147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## How to Version
+## Versioning
 
-- **MAJOR** version when making incompatible API changes
-- **MINOR** version when adding functionality in backward-compatible manner
-- **PATCH** version when making backward-compatible bug fixes
-
-## Unreleased Changes
-
-(None at this time)
+- **MAJOR** for incompatible changes
+- **MINOR** for functionality added in a backward compatible way
+- **PATCH** for backward compatible fixes
