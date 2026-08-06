@@ -108,14 +108,19 @@ class JobManager:
     ) -> None:
         self._jobs_dir = Path(jobs_dir)
         self._retention_seconds = retention_hours * 3600
+        self._max_workers = max_workers
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()
-        self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="job")
+        # Created on start rather than here, so the manager can be started again
+        # after a shutdown. A pool that has been shut down cannot be reused.
+        self._executor: ThreadPoolExecutor | None = None
         self._shutdown = threading.Event()
         self._cleaner: threading.Thread | None = None
 
     def start(self) -> None:
         self._jobs_dir.mkdir(parents=True, exist_ok=True)
+        self._shutdown.clear()
+        self._executor = ThreadPoolExecutor(max_workers=self._max_workers, thread_name_prefix="job")
         self.cleanup_expired()
         self._cleaner = threading.Thread(target=self._cleanup_loop, name="job-cleanup", daemon=True)
         self._cleaner.start()
@@ -124,7 +129,9 @@ class JobManager:
         self._shutdown.set()
         for job in self.all_jobs():
             job.cancel_event.set()
-        self._executor.shutdown(wait=False, cancel_futures=True)
+        if self._executor is not None:
+            self._executor.shutdown(wait=False, cancel_futures=True)
+            self._executor = None
 
     def create(self) -> Job:
         """Create an empty workspace ready to receive uploads."""
@@ -145,6 +152,8 @@ class JobManager:
         source_path: Path,
         hmy_path: Path | None,
     ) -> None:
+        if self._executor is None:
+            self.start()
         job.source_name = source_path.name
         self._executor.submit(self._execute, job, config, source_path, hmy_path)
 

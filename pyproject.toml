@@ -1,79 +1,70 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "image-processor"
-version = "4.2"
-description = "Professional batch image processor with intelligent resizing and organization"
+version = "5.0.0"
+description = "Web app that downloads, resizes, renames and files property images listed in a CSV export"
 readme = "README.md"
-license = {text = "MIT"}
-authors = [
-    {name = "Your Name", email = "your.email@example.com"},
-]
-requires-python = ">=3.7"
+license = { text = "MIT" }
+requires-python = ">=3.10"
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: FastAPI",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Operating System :: OS Independent",
-    "Topic :: Multimedia :: Graphics :: Image Processing",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics :: Graphics Conversion",
     "Topic :: Utilities",
 ]
-keywords = ["image", "processing", "batch", "resize", "photography", "automation"]
+keywords = ["image", "batch", "resize", "rename", "csv", "fastapi"]
 
 dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "jinja2>=3.1.0",
+    "python-multipart>=0.0.9",
     "pandas>=1.3.0",
-    "openpyxl>=3.6.0",
-    "Pillow>=8.3.0",
+    "openpyxl>=3.1.0",
+    "Pillow>=9.0.0",
     "requests>=2.26.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=6.2.0",
-    "black>=21.0",
-    "flake8>=3.9.0",
-    "pytest-cov>=2.12.0",
+    "pytest>=7.0",
+    "httpx>=0.24",
+    "ruff>=0.4",
 ]
 
-[project.urls]
-Homepage = "https://github.com/yourusername/image-processor"
-Documentation = "https://github.com/yourusername/image-processor/blob/main/README.md"
-Repository = "https://github.com/yourusername/image-processor.git"
-"Bug Tracker" = "https://github.com/yourusername/image-processor/issues"
+[project.scripts]
+image-processor = "cli:main"
 
 [tool.setuptools]
-packages = []
+packages = ["app", "app.processing"]
 
-[tool.black]
-line-length = 120
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[tool.setuptools.package-data]
+app = ["templates/*.html", "static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "SIM"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI declares request parameters through calls in argument defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.File", "fastapi.Form", "fastapi.Query"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests read better with long descriptive names and inline CSV rows.
+"tests/*" = ["E501"]

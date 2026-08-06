@@ -7,9 +7,10 @@ in the web form, and a row in `samples/Config.csv`.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from .constants import (
     OPERATION_MODE_RENAME_ONLY,
@@ -95,7 +96,7 @@ class ProcessingConfig:
         return asdict(self)
 
     @classmethod
-    def from_mapping(cls, mapping: Mapping[str, Any]) -> "ProcessingConfig":
+    def from_mapping(cls, mapping: Mapping[str, Any]) -> ProcessingConfig:
         """Build a config from loosely named keys, ignoring anything unrecognised.
 
         Values that cannot be parsed fall back to the default for that field, so
@@ -115,7 +116,7 @@ class ProcessingConfig:
         return cls(**values)
 
     @classmethod
-    def from_file(cls, path: Path) -> "ProcessingConfig":
+    def from_file(cls, path: Path) -> ProcessingConfig:
         """Load from a two-column Config.csv or Config.xlsx (setting, value)."""
         import pandas as pd
 
@@ -133,7 +134,7 @@ class ProcessingConfig:
         return cls.from_mapping(mapping)
 
     @classmethod
-    def discover(cls, directory: Path) -> tuple["ProcessingConfig", Path | None]:
+    def discover(cls, directory: Path) -> tuple[ProcessingConfig, Path | None]:
         """Find Config.xlsx or Config.csv in a directory, preferring the workbook.
 
         Returns the config and the file it came from, or the defaults and None.

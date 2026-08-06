@@ -11,10 +11,11 @@ import os
 import re
 import threading
 import urllib.parse
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, Iterable, Sequence
+from typing import Any
 
 import pandas as pd
 import requests
@@ -132,7 +133,14 @@ def run(
         for _, row in frame.iterrows():
             if cancel.is_set():
                 summary.cancelled = True
-                emit(Event(LEVEL_WARNING, "Cancelled. Files already written are kept.", processed=processed, total=summary.total))
+                emit(
+                    Event(
+                        LEVEL_WARNING,
+                        "Cancelled. Files already written are kept.",
+                        processed=processed,
+                        total=summary.total,
+                    )
+                )
                 break
 
             processed += 1
@@ -332,13 +340,23 @@ def _load_property_ids(hmy_path: Path | None, emit: EventCallback) -> dict[str, 
 
     hmy_path = Path(hmy_path)
     if not hmy_path.exists():
-        emit(Event(LEVEL_WARNING, f"Property mapping file not found: {hmy_path.name}. Continuing without it."))
+        emit(
+            Event(
+                LEVEL_WARNING,
+                f"Property mapping file not found: {hmy_path.name}. Continuing without it.",
+            )
+        )
         return {}
 
     try:
         frame = pd.read_csv(hmy_path)
     except (OSError, UnicodeDecodeError, pd.errors.ParserError, pd.errors.EmptyDataError) as error:
-        emit(Event(LEVEL_WARNING, f"Property mapping file could not be read ({error}). Continuing without it."))
+        emit(
+            Event(
+                LEVEL_WARNING,
+                f"Property mapping file could not be read ({error}). Continuing without it.",
+            )
+        )
         return {}
 
     frame.columns = [str(column).strip() for column in frame.columns]
@@ -429,9 +447,7 @@ def _text(value: Any) -> str:
     return "" if text.lower() == "nan" else text
 
 
-def _write_process_log(
-    entries: list[dict[str, Any]], output_dir: Path, emit: EventCallback
-) -> Path | None:
+def _write_process_log(entries: list[dict[str, Any]], output_dir: Path, emit: EventCallback) -> Path | None:
     if not entries:
         return None
     path = output_dir / PROCESS_LOG_NAME
@@ -444,9 +460,7 @@ def _write_process_log(
     return path
 
 
-def _write_failed_log(
-    records: list[dict[str, Any]], output_dir: Path, emit: EventCallback
-) -> Path | None:
+def _write_failed_log(records: list[dict[str, Any]], output_dir: Path, emit: EventCallback) -> Path | None:
     """Write failed rows as a workbook, falling back to CSV without openpyxl."""
     if not records:
         return None

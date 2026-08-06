@@ -49,6 +49,10 @@ def read_source_headers(path: Path) -> list[str]:
     for encoding in _ENCODINGS:
         try:
             frame = pd.read_csv(path, encoding=encoding, header=None, nrows=1, engine="python")
+        except pd.errors.EmptyDataError as error:
+            raise ValidationError(
+                "The file is empty. Expected a header row followed by data rows."
+            ) from error
         except (UnicodeDecodeError, pd.errors.ParserError) as error:
             last_error = error
             continue

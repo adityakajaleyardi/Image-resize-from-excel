@@ -26,8 +26,9 @@ from .processing.validation import (
     HMY_ID_COLUMNS,
     SOURCE_OPTIONAL_COLUMNS,
     SOURCE_REQUIRED_COLUMNS,
+    validate_property_hmy_csv,
+    validate_source_csv,
 )
-from .processing.validation import validate_property_hmy_csv, validate_source_csv
 from .settings import (
     MAX_UPLOAD_BYTES,
     TEMPLATE_FILES,

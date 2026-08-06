@@ -34,9 +34,7 @@ def get_scaled_dimensions(
     return int(img_w * scale), int(img_h * scale)
 
 
-def resize_to_box(
-    img: Image.Image, box: tuple[int, int], manual: bool
-) -> tuple[Image.Image, str]:
+def resize_to_box(img: Image.Image, box: tuple[int, int], manual: bool) -> tuple[Image.Image, str]:
     """Resize an image to a target box and describe what was done.
 
     With manual sizing the image is stretched to exactly the given dimensions.
@@ -64,9 +62,7 @@ def resize_to_box(
     return img.resize((final_w, final_h), Image.Resampling.LANCZOS), f"Resized to {final_w}x{final_h}"
 
 
-def compress_and_save(
-    img: Image.Image, save_path: Path, max_mb: float, format_type: str = "JPEG"
-) -> float:
+def compress_and_save(img: Image.Image, save_path: Path, max_mb: float, format_type: str = "JPEG") -> float:
     """Write an image to disk and return its final size in megabytes.
 
     PNGs are saved losslessly. JPEGs step down in quality until they fit the
