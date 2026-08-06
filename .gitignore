@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 ENV/
 build/
 develop-eggs/
@@ -13,14 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
-parts/
 sdist/
-var/
 wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -31,10 +26,22 @@ MANIFEST
 *.manifest
 *.exe
 
+# Runtime data: saved server defaults and per-job workspaces
+data/
+
 # Output folders
 Processed_Images/
 Output/
 Logs/
+
+# Working data files. These hold real property data and must never be committed.
+# Templates with dummy data live in samples/ instead.
+/Config.csv
+/Source.csv
+/Img_Report.csv
+/PropertyHMY.csv
+/UnitMapping.csv
+/URL_Variants.csv
 
 # Backup files
 *- Copy.py
@@ -45,21 +52,17 @@ Logs/
 # IDE
 .vscode/
 .idea/
+*.code-workspace
 *.swp
 *.swo
-*~
 .DS_Store
-
-# Configuration (optional - uncomment if using personal configs)
-# Config.csv
-# PropertyHMY.csv
-# UnitMapping.csv
 
 # Temporary files
 .tmp/
 *.tmp
 .cache/
 .pytest_cache/
+.ruff_cache/
 
 # OS
 Thumbs.db
