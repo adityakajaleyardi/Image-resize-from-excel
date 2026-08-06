@@ -250,10 +250,10 @@ def _process_row(
             LEVEL_OK,
             f"{label} | {action} | {size_mb:.2f} MB | {filename}",
             log_entry={
-                "Folder": str(target_folder),
+                "Folder": target_folder.name,
                 "status": "success",
                 "Original": raw_url,
-                "New": str(save_path),
+                "New": str(save_path.relative_to(output_dir)),
                 "SizeMB": round(size_mb, 2),
                 "Error": "",
             },
@@ -269,7 +269,7 @@ def _process_row(
             f"{label} | {reason}",
             error=reason,
             log_entry={
-                "Folder": str(target_folder),
+                "Folder": target_folder.name,
                 "status": "fail",
                 "Original": raw_url,
                 "New": "",
@@ -373,10 +373,9 @@ def _candidate_urls(raw_url: str, property_code: str, hmy_lookup: dict[str, str]
 
 
 def _download(session: requests.Session, urls: Sequence[str]) -> requests.Response:
-    """Try each URL against the primary domain and then the CDN fallbacks."""
+    """Try each URL as given, then against the CDN fallback domains."""
     for url in urls:
-        for domain in _domains_to_try():
-            candidate = url.replace(PRIMARY_DOMAIN, domain) if domain else url
+        for candidate in _url_variants(url):
             try:
                 response = session.get(candidate, timeout=DOWNLOAD_TIMEOUT_SECONDS)
             except requests.RequestException:
@@ -386,9 +385,12 @@ def _download(session: requests.Session, urls: Sequence[str]) -> requests.Respon
     raise ProcessingError("The file could not be downloaded. It returned an error or timed out.")
 
 
-def _domains_to_try() -> Iterable[str | None]:
-    yield None
-    yield from FALLBACK_DOMAINS
+def _url_variants(url: str) -> Iterable[str]:
+    """The URL itself, followed by the CDN mirrors of it where applicable."""
+    yield url
+    if PRIMARY_DOMAIN in url:
+        for domain in FALLBACK_DOMAINS:
+            yield url.replace(PRIMARY_DOMAIN, domain)
 
 
 def _safe_encode_url(url: str) -> str:

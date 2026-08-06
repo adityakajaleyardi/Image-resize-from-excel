@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Image Processor{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Image Processor
+      </a>
+      <nav class="site-nav">
+        <a href="/" class="{{ 'is-active' if active_page == 'run' else '' }}">Run</a>
+        <a href="/help" class="{{ 'is-active' if active_page == 'help' else '' }}">Help</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      Version {{ version }} &middot; Runs stay available for 24 hours, then are deleted from the server.
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>Process property images</h1>
+  <p>
+    Upload your export, check the settings, and start the run. When it finishes you
+    download a ZIP with every image renamed, resized and filed into folders.
+    Not sure about the file format? <a href="/help">Read the help page</a>.
+  </p>
+</div>
+
+<form id="run-form" novalidate>
+  <section class="card" aria-labelledby="step-files">
+    <div class="card-head">
+      <span class="step">1</span>
+      <h2 id="step-files">Choose your files</h2>
+    </div>
+
+    <div class="field-grid">
+      <div class="file-field">
+        <label for="source">Source export <span class="required">required</span></label>
+        <p class="hint">
+          The CSV listing the images to process. It needs a header row with columns such as
+          <code>Full Path</code> and <code>Doc. Type</code>.
+          <a href="/api/templates/source">Download a template</a>.
+        </p>
+        <input type="file" id="source" name="source" accept=".csv" required>
+        <p class="file-chosen" data-for="source">No file chosen</p>
+      </div>
+
+      <div class="file-field">
+        <label for="property-map">Property mapping <span class="optional">optional</span></label>
+        <p class="hint">
+          Maps property codes to property ids so older <code>p-code</code> URLs can be retried.
+          Leave empty if you do not have one.
+          <a href="/api/templates/property-map">Download a template</a>.
+        </p>
+        <input type="file" id="property-map" name="property_map" accept=".csv">
+        <p class="file-chosen" data-for="property-map">No file chosen</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="step-settings">
+    <div class="card-head">
+      <span class="step">2</span>
+      <h2 id="step-settings">Check the settings</h2>
+      <p class="card-note">These start from the saved defaults and apply to this run only.</p>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting">
+        <label for="operationmode">Operation mode</label>
+        <select id="operationmode" name="operationmode">
+          <option value="2" {{ 'selected' if config.operationmode == 2 }}>Resize and rename</option>
+          <option value="1" {{ 'selected' if config.operationmode == 1 }}>Rename only</option>
+        </select>
+        <p class="hint">{{ descriptions['operationmode'] }}</p>
+      </div>
+
+      <div class="setting">
+        <label for="propertytype">Property type</label>
+        <select id="propertytype" name="propertytype">
+          <option value="MVC" {{ 'selected' if config.propertytype == 'MVC' }}>MVC</option>
+          <option value="LEGACY" {{ 'selected' if config.propertytype == 'LEGACY' }}>Legacy</option>
+        </select>
+        <p class="hint">{{ descriptions['propertytype'] }}</p>
+      </div>
+
+      <div class="setting">
+        <label for="maxfilesizemb">Max file size (MB)</label>
+        <input type="number" id="maxfilesizemb" name="maxfilesizemb" min="0.1" step="0.1"
+               value="{{ config.maxfilesizemb }}">
+        <p class="hint">{{ descriptions['maxfilesizemb'] }}</p>
+      </div>
+
+      <div class="setting setting-toggle">
+        <label class="switch">
+          <input type="checkbox" id="manualsizing" name="manualsizing"
+                 {{ 'checked' if config.manualsizing == 1 }}>
+          <span>Manual sizing</span>
+        </label>
+        <p class="hint">{{ descriptions['manualsizing'] }}</p>
+      </div>
+
+      <div class="setting">
+        <label for="targetwidth">Target width (px)</label>
+        <input type="number" id="targetwidth" name="targetwidth" min="1" step="1"
+               value="{{ config.targetwidth }}">
+        <p class="hint">{{ descriptions['targetwidth'] }}</p>
+      </div>
+
+      <div class="setting">
+        <label for="targetheight">Target height (px)</label>
+        <input type="number" id="targetheight" name="targetheight" min="1" step="1"
+               value="{{ config.targetheight }}">
+        <p class="hint">{{ descriptions['targetheight'] }}</p>
+      </div>
+
+      <div class="setting setting-toggle">
+        <label class="switch">
+          <input type="checkbox" id="optimizedsuffix" name="optimizedsuffix"
+                 {{ 'checked' if config.optimizedsuffix == 1 }}>
+          <span>Add "Optimized" suffix</span>
+        </label>
+        <p class="hint">{{ descriptions['optimizedsuffix'] }}</p>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button type="button" class="button button-ghost" id="save-default">Save as default</button>
+      <span class="inline-status" id="save-status" role="status"></span>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="step-run">
+    <div class="card-head">
+      <span class="step">3</span>
+      <h2 id="step-run">Run</h2>
+    </div>
+
+    <div class="card-actions">
+      <button type="submit" class="button button-primary" id="start">Start processing</button>
+      <button type="button" class="button button-ghost" id="cancel" hidden>Cancel</button>
+    </div>
+
+    <p class="alert alert-error" id="form-error" role="alert" hidden></p>
+  </section>
+</form>
+
+<section class="card" id="progress-card" aria-labelledby="progress-title" hidden>
+  <div class="card-head">
+    <h2 id="progress-title">Progress</h2>
+    <p class="card-note" id="progress-state" role="status">Starting...</p>
+  </div>
+
+  <div class="progress-track" role="progressbar" aria-labelledby="progress-title"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-bar">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <ul class="counters">
+    <li><span class="counter-value" id="count-ok">0</span> processed</li>
+    <li><span class="counter-value" id="count-fail">0</span> failed</li>
+    <li><span class="counter-value" id="count-skip">0</span> skipped</li>
+  </ul>
+
+  <div class="log" id="log" aria-live="polite" aria-label="Run log"></div>
+</section>
+
+<section class="card" id="results-card" aria-labelledby="results-title" hidden>
+  <div class="card-head">
+    <h2 id="results-title">Results</h2>
+  </div>
+  <p id="results-summary"></p>
+  <div class="card-actions">
+    <a class="button button-primary" id="download-zip" href="#" hidden>Download images (ZIP)</a>
+    <a class="button button-ghost" id="download-log" href="#" hidden>Download process log (CSV)</a>
+    <button type="button" class="button button-ghost" id="start-over">Start another run</button>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='app.js') }}"></script>
+{% endblock %}
