@@ -1,0 +1,33 @@
+---
+description: Contractual behaviour of the image processing engine
+globs: app/processing/**/*.py
+alwaysApply: false
+---
+
+# Processing engine invariants
+
+Output filenames and image dimensions are a contract with downstream systems. Do not change them
+incidentally while working on something else.
+
+- Naming rules live in `naming.py`, iType sizing boxes in `constants.py`. Both are pinned by
+  `tests/test_naming.py` and `tests/test_images.py`. A change that breaks those tests is wrong
+  unless changing the rules is explicitly the task.
+- `Target Image Name` overrides all automatic naming. Only characters Windows rejects are
+  replaced, and an extension is added if there is none.
+- Images are only ever scaled down, never enlarged, unless manual sizing is on.
+
+Nothing in this package may import FastAPI or any other web dependency; `cli.py` depends on it
+standing alone.
+
+Report progress through the `on_event` callback, never `print`:
+
+```python
+# Wrong: the engine does not know where it is running
+print(f"[OK] {filename}")
+
+# Right
+emit(Event(LEVEL_OK, f"{label} | {action}", row=row_index))
+```
+
+No bare `except:`. Catching broad `Exception` is correct where one bad row must not stop a run, and
+wrong as a way to ignore an error.
