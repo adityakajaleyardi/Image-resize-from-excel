@@ -1,294 +1,229 @@
 # Image Processor
 
-A professional Python-based image processing tool designed to download, resize, rename, and organize images from URLs with intelligent doc-type recognition and folder management.
+A web app that downloads property images listed in a CSV export, resizes them, renames them to
+convention, and files them into folders. Users open it in a browser and download the results as a
+ZIP, so nothing has to be installed on their machine.
 
-## Features
+There is also a command line entry point for scripted or offline use.
 
-- 🖼️ **Batch Image Processing** - Process multiple images from CSV sources
-- 📥 **Smart Download** - Multi-domain fallback support for reliable image retrieval
-- 🔄 **Intelligent Resizing** - Context-aware sizing based on image type (iType)
-- 📝 **Custom Naming** - Generate professional file names with doc-type abbreviations or use custom names
-- 📁 **Automatic Organization** - Organize images into structured folders by property and document type
-- 🎯 **Flexible Configuration** - CSV-based configuration with property type support (MVC/LEGACY)
-- ✅ **Comprehensive Logging** - Detailed process logs and error tracking
-- 🔧 **Extensible** - Support for 30+ document types with mappings
+## Contents
 
-## System Requirements
+- [Hosting the app](#hosting-the-app)
+- [Using the app](#using-the-app)
+- [Input files](#input-files)
+- [Settings](#settings)
+- [Naming and sizing rules](#naming-and-sizing-rules)
+- [Command line use](#command-line-use)
+- [Project layout](#project-layout)
+- [Development](#development)
 
-- Python 3.7+
-- Windows/macOS/Linux
-- Internet connection (for downloading images)
+## Hosting the app
 
-## Installation
+One person hosts it; everyone else just opens the link.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/image-processor.git
-   cd image-processor
-   ```
+```powershell
+git clone https://github.com/adityakajaleyardi/Image-resize-from-excel.git
+cd Image-resize-from-excel
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 
-2. **Create virtual environment** (recommended)
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Quick Start
-
-### 1. Prepare Input Files
-
-Create or use the following CSV files in the project directory:
-
-#### **Source.csv** (Main input file)
-| Column | Description | Required |
-|--------|-------------|----------|
-| Property/Company Code | Property identifier | ✓ |
-| Property Name | Human-readable property name | ✓ |
-| File Name | Original file name | ✓ |
-| iType | Image type code (determines sizing) | ✓ |
-| Order | Sort order | Optional |
-| Doc. Type | Document type (for categorization) | ✓ |
-| Floorplan Code | Floorplan identifier | Optional |
-| Active/Inactive | Process flag | ✓ |
-| Full Path | Image URL | ✓ |
-| Target Property | Override property for output | Optional |
-| Target Image Name | Custom output filename (skips auto-naming) | Optional |
-
-#### **Config.csv** (Configuration)
-```
-sourcefile,Source.csv
-outputfolder,Processed_Images
-propertytype,MVC
-operationmode,2
-targetwidth,2560
-targetheight,1707
-maxfilesizemb,1.0
-manualsizing,0
-optimizedsuffix,0
+.\scripts\start_server.ps1
 ```
 
-#### **PropertyHMY.csv** (Property ID mapping)
+The script prints two addresses. Share the second one, which looks like `http://10.x.x.x:8000`.
+If PowerShell refuses to run the script, double click `scripts\start_server.bat` instead, which
+works around the execution policy.
+
+Use `-Port` to serve somewhere else:
+
+```powershell
+.\scripts\start_server.ps1 -Port 8080
 ```
-Property Code,Property Id
-p0054387,50651
-p0054388,50652
+
+### If a colleague cannot open the link
+
+Almost always the Windows firewall. Allow the port once, from an administrator PowerShell window:
+
+```powershell
+New-NetFirewallRule -DisplayName 'Image Processor' -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
 ```
 
-#### **UnitMapping.csv** (Optional - for unit type mappings)
+The host machine must stay on and the window must stay open for the app to be reachable.
 
-### 2. Configure (Optional)
+### Notes on hosting
 
-Edit `Config.csv`:
-- **operationmode**: 1=Rename only, 2=Resize (default: 2)
-- **propertytype**: MVC or LEGACY (affects sizing rules)
-- **manualsizing**: 0=Auto rules, 1=Manual config
-- **optimizedsuffix**: 1=Add "Optimized" suffix, 0=Don't add (default: 0)
-- **targetwidth/height**: Used when manualsizing=1
+- There is no login. Anyone who can reach the address can use it, which is the intent for an
+  internal tool on a trusted network.
+- Two runs execute at a time; further runs queue.
+- Everything a run produces lives under `data/jobs/` and is deleted after 24 hours.
 
-### 3. Run the Processor
+Environment variables, if you need them: `IMAGE_PROCESSOR_DATA_DIR`,
+`IMAGE_PROCESSOR_MAX_CONCURRENT_JOBS`, `IMAGE_PROCESSOR_JOB_RETENTION_HOURS`.
+
+## Using the app
+
+1. **Choose your files.** The source export is required. The property mapping file is optional.
+2. **Check the settings.** They start from the saved defaults and apply to this run only, unless
+   you press *Save as default*.
+3. **Start the run.** Progress appears line by line and can be cancelled at any point.
+4. **Download the ZIP.** It contains the images in their folders, plus the process log.
+
+If a column name is wrong the app says so before the run starts, naming every column that is
+missing. The Help page in the app documents the file formats and offers template downloads.
+
+## Input files
+
+### Source export (required)
+
+One row per image, with a header row. Column names must match exactly.
+
+| Column | Required | Purpose |
+|---|---|---|
+| `Property/Company Code` or `Property Code` | Yes | Identifies the property the image came from |
+| `File Name` | Yes | Original file name, used in the log |
+| `iType` | Yes | Image type code, which decides the target size |
+| `Doc. Type` | Yes | Document type, which decides the folder and the filename suffix |
+| `Active/Inactive` | Yes | Rows marked `Inactive` are skipped |
+| `Full Path` | Yes | URL to download |
+| `Property Name` | No | Reference only |
+| `Order` | No | Reference only |
+| `Floorplan Code` | No | Reference only |
+| `Target Property` | No | File the image under a different property |
+| `Target Image Name` | No | Name the output file yourself, skipping all automatic naming |
+
+### Property mapping (optional)
+
+Maps property codes to property ids, so older `p-code` URLs can be retried against the current id.
+
+| Column | Purpose |
+|---|---|
+| `Propery Code` or `Property Code` | Property code as it appears in the source export |
+| `Propery Id` or `Property Id` | Numeric property id |
+
+The misspelling is what the standard export produces, so both spellings are accepted.
+
+Templates for both files are in [samples/](samples/) and downloadable from the app.
+
+## Settings
+
+| Setting | Default | Effect |
+|---|---|---|
+| Operation mode | Resize and rename | Rename only leaves the image untouched |
+| Property type | MVC | Changes the target size for iTypes 1 and 120 |
+| Manual sizing | Off | On resizes every image to the exact width and height below |
+| Target width, height | 2560 x 1707 | Used only with manual sizing on |
+| Max file size MB | 1.0 | JPEG quality steps down until the file fits |
+| Optimized suffix | Off | On appends `Optimized` to generated filenames |
+
+Saved defaults live in `data/default_config.json`. On first run they are seeded from a `Config.csv`
+left over from the desktop version, so existing settings carry over.
+
+## Naming and sizing rules
+
+### Filenames
+
+With `Target Image Name` filled in, that name is used exactly as given. Only characters Windows
+rejects are replaced, and an extension is added if you left one off. The extension decides whether
+the output is JPEG or PNG.
+
+Otherwise the name is built as:
+
+```
+TargetProperty_ImageDescription_iType_DocTypeSuffix.jpg
+```
+
+The description comes from the URL. A property code the export prefixed onto it is stripped, and
+the iType and doc type suffixes are skipped when the description already states them. So
+`p0054389_photogallery_bedroom.jpg` for property `Ridgecrest Village` becomes
+`Ridgecrest_Village_photogallery_bedroom_40.jpg`, not
+`Ridgecrest_Village_p0054389_photogallery_bedroom_40_PG.jpg`.
+
+Files are written into `TargetProperty__DocType/`.
+
+### Sizes
+
+Images are only ever scaled down, never enlarged. Portrait images have 15% trimmed from the top
+and bottom before scaling, so they are not reduced to a sliver inside a landscape box.
+
+| iType | MVC | Legacy |
+|---|---|---|
+| 1 | 2560 x 1707 | 1024 x 768 |
+| 2 | Height 480 | Height 480 |
+| 5 | 500 x 350 | 500 x 350 |
+| 6 | Width 350 | Width 350 |
+| 40 | Height 1000 | Height 1000 |
+| 120 | 2560 x 1707 | 670 x 480 |
+| 4, 10, 12, 13, 14, 15, 28 | 2560 x 1707 | No rule |
+
+An iType with no rule is left at its original size.
+
+### Downloads
+
+Each URL is tried as given. If it is on `www.rentcafe.com` the CDN mirrors
+`cdngeneral.rentcafe.com` and `cdngeneralcf.rentcafe.com` are tried too. When a property mapping
+is supplied, `p-code` URLs are also retried with the path rewritten to the mapped property id.
+
+A row that cannot be downloaded is recorded and the run continues.
+
+## Command line use
+
+`cli.py` reproduces the behaviour of the original desktop script. With no arguments it reads
+`Config.csv` or `Config.xlsx` from the current folder, processes the source file named there, and
+writes into the output folder beside it.
 
 ```bash
-python image_processor.py
+python cli.py
+python cli.py --source Export.csv --output ./out --no-pause
+python cli.py --config Config.xlsx --property-map PropertyHMY.csv
 ```
 
-The processor will:
-1. Load configuration from `Config.csv`
-2. Read image entries from `Source.csv`
-3. Download images (with fallback domains)
-4. Resize/crop based on iType and config
-5. Generate professional filenames or use custom names
-6. Save to organized folder structure
-7. Generate process logs
+It exits with status 1 if any row failed, so it can be used in a scheduled task.
 
-### 4. Check Results
-
-- **Processed images**: `Processed_Images/[Property]__[DocType]/`
-- **Process log**: `Processed_Images/Process_Log.csv`
-- **Error log**: `Processed_Images/Failed_Log.csv` or `.xlsx`
-
-## Configuration Details
-
-### Image Types (iType)
-
-| iType | Description | Target Size |
-|-------|-------------|------------|
-| 1 | Primary image | 2560x1707 (MVC) or 1024x768 (LEGACY) |
-| 2 | Wide format | 99999x480 |
-| 4 | Standard | 2560x1707 (MVC) |
-| 5 | Thumbnail | 500x350 |
-| 6 | Vertical | 350x99999 |
-| 40 | Photo gallery | 99999x1000 |
-| ... | [See DOC_TYPE_MAPPING] | - |
-
-### Document Type Abbreviations
-
-- PG = Photo Gallery
-- FP = Floorplan
-- SP = Site Plan
-- BG = Background Image
-- Banner = Banner Image
-- log = Property Logo
-- AmenityImage = Amenity Images
-- Template = Template Images
-- ... [30+ types supported]
-
-### Target Image Name Feature
-
-Leave blank to use auto-generated names:
-```
-SizableCompanyName_ImageDescription_40_PG.jpg
-```
-
-Or provide a custom name to skip all renaming logic:
-```
-my_custom_image_name.jpg
-```
-
-**Note**: Sizing and folder organization still apply with custom names.
-
-## Supported Image Types & Domains
-
-### Primary Domain
-- www.rentcafe.com
-
-### Fallback Domains (if primary fails)
-- cdngeneral.rentcafe.com
-- cdngeneralcf.rentcafe.com
-
-### Supported Formats
-- **Input**: JPEG, PNG, GIF, WebP
-- **Output**: JPEG (default) or PNG (based on iType)
-
-## Output Structure
+## Project layout
 
 ```
-Processed_Images/
-├── Process_Log.csv
-├── Failed_Log.csv
-├── PropertyName__DocType/
-│   ├── propertyname_imagedesc_itype_docabbr.jpg
-│   ├── propertyname_imagedesc_itype_docabbr.jpg
-│   └── ...
-└── AnotherProperty__OtherDocType/
-    └── ...
+app/
+  main.py                 HTTP routes
+  jobs.py                 job workspaces, worker pool, ZIP packaging, expiry
+  settings.py             paths, limits, saved defaults
+  processing/             pure processing logic, no web dependencies
+    constants.py          doc type mappings, domains, iType sizing rules
+    config.py             ProcessingConfig and Config.csv parsing
+    validation.py         upload header checks
+    naming.py             filename construction
+    images.py             resize, crop, compress
+    engine.py             the run itself
+  templates/, static/     front end
+cli.py                    command line entry point
+scripts/                  start_server.ps1 and .bat
+samples/                  templates for the input files
+tests/                    pytest suite
+data/                     runtime only, never committed
 ```
 
-## Advanced Usage
-
-### Custom Sizing Rules
-
-To use custom dimensions instead of intelligent sizing:
-
-1. Set `manualsizing` to `1` in `Config.csv`
-2. Set desired `targetwidth` and `targetheight`
-3. All images will be resized to these dimensions
-
-### Vertical Image Handling
-
-Vertical images (height > width) are automatically:
-1. Cropped to remove 15% from top and bottom
-2. Resized to fit target box
-3. Logged with "Vertical Crop & Resized" action
-
-### Batch Processing with Errors
-
-Failed records are saved with detailed error messages:
-- Check `Failed_Log.csv/xlsx` for failed entries
-- Errors include download issues, processing errors, file system issues
-
-## Logging
-
-### Process Log Columns
-- Folder: Output directory
-- status: 'success' or 'fail'
-- Original: Source URL
-- New: Output file path
-- SizeMB: Final file size
-- Error: Error message (if failed)
-
-## Troubleshooting
-
-### Issue: "File could not be downloaded (404/Timeout)"
-- Check URL in Source.csv
-- Verify internet connection
-- Check if image still exists at source
-
-### Issue: Images not resized
-- Verify iType value is correct
-- Check if `operationmode` is set to 2 (Resize)
-- Check image dimensions vs target sizing rules
-
-### Issue: Folder names look strange
-- This is expected - special characters are converted to underscores
-- Use `Target Property` column to override property name
-
-### Issue: File size too large
-- Reduce `maxfilesizemb` in Config.csv
-- This applies compression to reduce file size
-
-## Performance Tips
-
-- Process in batches of 100-500 images
-- Use robust internet connection for reliability
-- Enable logging for troubleshooting
-- Verify a few rows before processing entire dataset
-
-## Dependencies
-
-See [requirements.txt](requirements.txt) for full list:
-- pandas
-- Pillow
-- requests
-- openpyxl (for Excel export)
-
-## Making Changes
-
-1. Modify `image_processor.py` for core logic changes
-2. Update `.spec` versioning files when PyInstaller builds
-3. Update `README.md` when adding features
-
-## Version History
-
-- **v4.2** - Added Target Image Name column for custom naming
-- **v4.1** - Enhanced doc-type mapping with 30+ types
-- **v3.4** - Added vertical image crop logic
-- **v1.0** - Initial release
-
-## Building Executable (Optional)
-
-To create a standalone executable using PyInstaller:
+## Development
 
 ```bash
-pip install pyinstaller
-pyinstaller ImageProcessorV4.2.spec
+pip install -r requirements.txt
+pip install pytest httpx ruff
+
+pytest
+ruff check .
+ruff format .
+
+python -m uvicorn app.main:app --reload
 ```
 
-Executable will be in `dist/ImageProcessor/`
+`app/processing/` must not import FastAPI or anything web related, so the command line keeps
+working independently.
 
-## Contributing
+Output filenames and image dimensions are a contract with downstream systems. They are pinned by
+tests in `tests/test_naming.py` and `tests/test_images.py`; do not change them incidentally.
 
-1. Create feature branch
-2. Make changes
-3. Test thoroughly
-4. Create pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and [CHANGELOG.md](CHANGELOG.md) for
+version history.
 
 ## License
 
-MIT License - See LICENSE file for details
-
-## Support
-
-For issues, questions, or suggestions:
-- Check the Troubleshooting section
-- Review process logs for details
-- Create an issue in the repository
-
----
-
-**Last Updated**: March 2026  
-**Current Version**: 4.2
+MIT. See [LICENSE](LICENSE).

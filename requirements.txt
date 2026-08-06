@@ -1,17 +1,18 @@
-# Image Processor Requirements
-# Python 3.7+
+# Image Processor
+# Python 3.10+
 
-# Data Processing
+# Web application
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+jinja2>=3.1.0
+python-multipart>=0.0.9
+
+# Data processing
 pandas>=1.3.0
-openpyxl>=3.6.0
+openpyxl>=3.1.0
 
-# Image Processing
-Pillow>=8.3.0
+# Image processing
+Pillow>=9.0.0
 
-# Web Requests
+# Web requests
 requests>=2.26.0
-
-# Optional - for development/testing
-# pytest>=6.2.0
-# black>=21.0
-# flake8>=3.9.0

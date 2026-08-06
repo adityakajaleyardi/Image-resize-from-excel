@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Help - Image Processor{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>File requirements</h1>
+  <p>
+    Both uploads are plain CSV files. Column names must match exactly, including
+    spaces and full stops, because the processor looks them up by name.
+    In Excel choose File, Save As, and pick <strong>CSV (Comma delimited)</strong>.
+  </p>
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Source export</h2>
+    <p class="card-note">One row per image. The first row must be the header.</p>
+  </div>
+
+  <h3>Required columns</h3>
+  <ul class="column-list">
+    {% for alternatives in required_columns %}
+    <li>
+      <code>{{ alternatives[0] }}</code>
+      {% if alternatives|length > 1 %}
+      <span class="muted">or <code>{{ alternatives[1] }}</code></span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+
+  <h3>Optional columns</h3>
+  <dl class="definitions">
+    <dt><code>Target Property</code></dt>
+    <dd>File the image under a different property than the one it came from. Defaults to the source property.</dd>
+    <dt><code>Target Image Name</code></dt>
+    <dd>
+      Name the output file yourself. When this is filled in, all automatic naming is skipped
+      and the name is used as given. Resizing and folder organisation still apply.
+      Include an extension (<code>.jpg</code> or <code>.png</code>) to control the output format.
+    </dd>
+    <dt><code>Property Name</code>, <code>Order</code>, <code>Floorplan Code</code></dt>
+    <dd>Carried through for reference. They do not affect processing.</dd>
+  </dl>
+
+  <h3>How rows are handled</h3>
+  <ul class="bullets">
+    <li>Rows with <code>Active/Inactive</code> set to <code>Inactive</code> are skipped.</li>
+    <li>Images are saved into a folder named <code>TargetProperty__DocType</code>.</li>
+    <li>If a download fails, the run continues and the row is listed in the failed log.</li>
+  </ul>
+
+  <p><a class="button button-ghost" href="/api/templates/source">Download source template</a></p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Property mapping</h2>
+    <p class="card-note">Optional. Lets older p-code URLs be retried against the current property id.</p>
+  </div>
+
+  <ul class="column-list">
+    <li>
+      <code>{{ hmy_code_columns[0] }}</code>
+      <span class="muted">or <code>{{ hmy_code_columns[1] }}</code></span>
+    </li>
+    <li>
+      <code>{{ hmy_id_columns[0] }}</code>
+      <span class="muted">or <code>{{ hmy_id_columns[1] }}</code></span>
+    </li>
+  </ul>
+  <p class="muted">
+    The first spelling is the one the standard export produces, misspelling included.
+    Any other columns in the file are ignored.
+  </p>
+
+  <p><a class="button button-ghost" href="/api/templates/property-map">Download mapping template</a></p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Document types</h2>
+    <p class="card-note">
+      The value in <code>Doc. Type</code> decides the folder name and the suffix added to generated
+      filenames. Anything not listed here still processes, but gets no suffix.
+    </p>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr><th>Doc. Type value</th><th>Filename suffix</th></tr>
+    </thead>
+    <tbody>
+      {% for doc_type, abbreviation in doc_types %}
+      <tr><td>{{ doc_type }}</td><td><code>{{ abbreviation }}</code></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Sizing</h2>
+  </div>
+  <p>
+    With manual sizing off, the target size comes from the <code>iType</code> column and the
+    property type. Images are only ever scaled down, never enlarged, and portrait images are
+    cropped slightly at the top and bottom first so they are not reduced to a sliver.
+  </p>
+
+  <table class="table">
+    <thead>
+      <tr><th>iType</th><th>MVC</th><th>Legacy</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>2560 x 1707</td><td>1024 x 768</td></tr>
+      <tr><td>2</td><td colspan="2">Height 480, any width</td></tr>
+      <tr><td>5</td><td colspan="2">500 x 350</td></tr>
+      <tr><td>6</td><td colspan="2">Width 350, any height</td></tr>
+      <tr><td>40</td><td colspan="2">Height 1000, any width</td></tr>
+      <tr><td>120</td><td>2560 x 1707</td><td>670 x 480</td></tr>
+      <tr><td>4, 10, 12, 13, 14, 15, 28</td><td>2560 x 1707</td><td class="muted">No rule, kept as is</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    With manual sizing on, every image is resized to the exact width and height you enter,
+    whatever its <code>iType</code>.
+  </p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Common problems</h2>
+  </div>
+  <dl class="definitions">
+    <dt>"The source file is missing required columns"</dt>
+    <dd>A column name does not match exactly. Compare yours against the template, watching for a missing full stop in <code>Doc. Type</code>.</dd>
+    <dt>Rows fail with "could not be downloaded"</dt>
+    <dd>The URL in <code>Full Path</code> is wrong, or the image has been removed. The processor also retries the CDN addresses before giving up.</dd>
+    <dt>The download is missing images</dt>
+    <dd>Check the process log in the ZIP. Every row is listed there with either its new path or the reason it failed.</dd>
+    <dt>Files are larger than expected</dt>
+    <dd>Only JPEGs are compressed to the size limit. PNGs are saved losslessly, so they can exceed it.</dd>
+  </dl>
+</section>
+{% endblock %}
