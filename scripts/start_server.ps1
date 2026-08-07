@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Start the Image Processor web app and print the address to share.
+  Start the internal tools web app and print the address to share.
 
 .DESCRIPTION
   Activates the virtual environment if there is one, checks the dependencies,
@@ -39,6 +39,14 @@ if (-not $SkipDependencyCheck) {
             throw 'Dependencies could not be installed. Run: python -m pip install -r requirements.txt'
         }
     }
+
+    # Optional: the PDF Flatten tool. The app runs without it and says the tool is
+    # unavailable, so a missing or unreachable install must not stop the server.
+    python -c "import flatten_pdf" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host 'PDF Flatten is not installed. That tool will show as unavailable.' -ForegroundColor Yellow
+        Write-Host '  To add it: python -m pip install -r requirements-flatten.txt' -ForegroundColor DarkGray
+    }
 }
 
 # The address colleagues type. Prefer the interface that reaches the network.
@@ -53,8 +61,8 @@ if (-not $address) {
 }
 
 Write-Host ''
-Write-Host '  Image Processor is starting' -ForegroundColor Cyan
-Write-Host '  ---------------------------'
+Write-Host '  Internal Tools is starting' -ForegroundColor Cyan
+Write-Host '  --------------------------'
 Write-Host "  On this computer : http://localhost:$Port"
 if ($address) {
     Write-Host "  Share this link  : http://$address`:$Port" -ForegroundColor Green
@@ -64,7 +72,7 @@ if ($address) {
 Write-Host ''
 Write-Host '  If a colleague cannot open the link, allow the port through the firewall once,'
 Write-Host '  from an administrator PowerShell window:'
-Write-Host "    New-NetFirewallRule -DisplayName 'Image Processor' -Direction Inbound ``" -ForegroundColor DarkGray
+Write-Host "    New-NetFirewallRule -DisplayName 'Internal Tools' -Direction Inbound ``" -ForegroundColor DarkGray
 Write-Host "      -Protocol TCP -LocalPort $Port -Action Allow" -ForegroundColor DarkGray
 Write-Host ''
 Write-Host '  Press Ctrl+C to stop the server.' -ForegroundColor DarkGray

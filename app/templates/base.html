@@ -3,23 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Image Processor{% endblock %}</title>
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
   <link rel="icon" href="data:,">
 </head>
 <body>
+  {% set current = (tools | selectattr('id', 'equalto', active_tool) | first) if active_tool else none %}
+
   <header class="site-header">
     <div class="shell header-inner">
       <a class="brand" href="/">
         <span class="brand-mark" aria-hidden="true"></span>
-        Image Processor
+        {{ app_name }}
       </a>
-      <nav class="site-nav">
-        <a href="/" class="{{ 'is-active' if active_page == 'run' else '' }}">Run</a>
-        <a href="/help" class="{{ 'is-active' if active_page == 'help' else '' }}">Help</a>
+      <nav class="site-nav" aria-label="Tools">
+        {% for tool in tools %}
+        <a href="{{ tool.path }}" class="{{ 'is-active' if active_tool == tool.id else '' }}">
+          {{ tool.label }}{% if not tool.available %} <span class="dot-warning" title="Not available on this server" aria-hidden="true"></span>{% endif %}
+        </a>
+        {% endfor %}
       </nav>
     </div>
   </header>
+
+  {% if current %}
+  <div class="subbar">
+    <div class="shell subbar-inner">
+      <nav class="sub-nav" aria-label="{{ current.label }} pages">
+        <a href="{{ current.path }}" class="{{ 'is-active' if active_page == 'run' else '' }}">Run</a>
+        <a href="{{ current.help_path }}" class="{{ 'is-active' if active_page == 'help' else '' }}">Help</a>
+      </nav>
+      <p class="subbar-note">{{ current.summary }}</p>
+    </div>
+  </div>
+  {% endif %}
 
   <main class="shell">
     {% block content %}{% endblock %}

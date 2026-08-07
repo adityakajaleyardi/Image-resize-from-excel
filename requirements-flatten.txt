@@ -1,0 +1,14 @@
+# The PDF Flatten tool.
+#
+# Kept out of requirements.txt on purpose: it is fetched from GitHub, so a
+# network that cannot reach github.com would otherwise break the install of
+# everything else. The app runs without it and marks the tool unavailable.
+#
+# Install alongside the core requirements:
+#     python -m pip install -r requirements-flatten.txt
+#
+# For local development against a checkout of the Flatten repo, install that
+# instead and keep this file for the server:
+#     python -m pip install -e ..\Flatten
+
+flatten-pdf @ git+https://github.com/adityakajaleyardi/Flatten.git

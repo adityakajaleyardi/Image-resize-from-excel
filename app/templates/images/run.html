@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 
+{% block title %}Images &middot; {{ app_name }}{% endblock %}
+
 {% block content %}
 <div class="page-intro">
   <h1>Process property images</h1>
   <p>
     Upload your export, check the settings, and start the run. When it finishes you
     download a ZIP with every image renamed, resized and filed into folders.
-    Not sure about the file format? <a href="/help">Read the help page</a>.
+    Not sure about the file format? <a href="/images/help">Read the help page</a>.
   </p>
 </div>
 
@@ -23,7 +25,7 @@
         <p class="hint">
           The CSV listing the images to process. It needs a header row with columns such as
           <code>Full Path</code> and <code>Doc. Type</code>.
-          <a href="/api/templates/source">Download a template</a>.
+          <a href="/api/images/templates/source">Download a template</a>.
         </p>
         <input type="file" id="source" name="source" accept=".csv" required>
         <p class="file-chosen" data-for="source">No file chosen</p>
@@ -34,7 +36,7 @@
         <p class="hint">
           Maps property codes to property ids so older <code>p-code</code> URLs can be retried.
           Leave empty if you do not have one.
-          <a href="/api/templates/property-map">Download a template</a>.
+          <a href="/api/images/templates/property-map">Download a template</a>.
         </p>
         <input type="file" id="property-map" name="property_map" accept=".csv">
         <p class="file-chosen" data-for="property-map">No file chosen</p>
@@ -129,31 +131,15 @@
   </section>
 </form>
 
-<section class="card" id="progress-card" aria-labelledby="progress-title" hidden>
-  <div class="card-head">
-    <h2 id="progress-title">Progress</h2>
-    <p class="card-note" id="progress-state" role="status">Starting...</p>
-  </div>
-
-  <div class="progress-track" role="progressbar" aria-labelledby="progress-title"
-       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-bar">
-    <div class="progress-fill" id="progress-fill"></div>
-  </div>
-
-  <ul class="counters">
-    <li><span class="counter-value" id="count-ok">0</span> processed</li>
-    <li><span class="counter-value" id="count-fail">0</span> failed</li>
-    <li><span class="counter-value" id="count-skip">0</span> skipped</li>
-  </ul>
-
-  <div class="log" id="log" aria-live="polite" aria-label="Run log"></div>
-</section>
+{% set counters = [('ok', 'processed'), ('fail', 'failed'), ('skip', 'skipped')] %}
+{% include "partials/progress.html" %}
 
 <section class="card" id="results-card" aria-labelledby="results-title" hidden>
   <div class="card-head">
     <h2 id="results-title">Results</h2>
   </div>
   <p id="results-summary"></p>
+  <div id="results-extra"></div>
   <div class="card-actions">
     <a class="button button-primary" id="download-zip" href="#" hidden>Download images (ZIP)</a>
     <a class="button button-ghost" id="download-log" href="#" hidden>Download process log (CSV)</a>
@@ -163,5 +149,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', path='app.js') }}"></script>
+<script src="{{ url_for('static', path='job-runner.js') }}"></script>
+<script src="{{ url_for('static', path='images.js') }}"></script>
 {% endblock %}

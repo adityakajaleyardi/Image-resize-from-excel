@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Flatten &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>Flatten PDFs</h1>
+  <p>
+    Pick a folder of PDFs and every form field, comment and stamp is baked permanently
+    into the page. Each result is checked against the original, so anything that came out
+    wrong is flagged rather than quietly handed back.
+    <a href="/flatten/help">Read the help page</a>.
+  </p>
+</div>
+
+{% if not tool.available %}
+<section class="card">
+  <p class="alert alert-error">
+    The flattening library is not installed on this server, so this tool cannot run.
+    Whoever hosts the app can install it with:
+  </p>
+  <pre class="code-block"><code>{{ tool.install_hint }}</code></pre>
+  <p class="muted">The other tools are unaffected.</p>
+</section>
+{% else %}
+
+<form id="run-form" novalidate>
+  <section class="card" aria-labelledby="step-files">
+    <div class="card-head">
+      <span class="step">1</span>
+      <h2 id="step-files">Choose your PDFs</h2>
+      <p class="card-note">Nothing is uploaded until you start the run.</p>
+    </div>
+
+    <div id="upload-limits"
+         data-max-files="{{ max_files }}"
+         data-max-file-mb="{{ max_file_mb }}"
+         data-max-total-mb="{{ max_total_mb }}"></div>
+
+    <div class="field-grid">
+      <div class="file-field">
+        <label for="pdf-folder">Pick a folder</label>
+        <p class="hint">
+          Everything inside is scanned, including subfolders. Only PDFs are uploaded;
+          anything else is ignored. The folder structure is kept in the download.
+        </p>
+        <input type="file" id="pdf-folder" webkitdirectory directory multiple>
+      </div>
+
+      <div class="file-field">
+        <label for="pdf-files">Or pick individual files</label>
+        <p class="hint">Use this when you only need a few documents from different places.</p>
+        <input type="file" id="pdf-files" accept=".pdf" multiple>
+      </div>
+    </div>
+
+    <div class="selection" id="selection" hidden>
+      <div class="selection-head">
+        <p class="selection-summary" id="selection-summary"></p>
+        <button type="button" class="button button-ghost button-small" id="clear-selection">Clear</button>
+      </div>
+      <p class="hint selection-note" id="selection-note" hidden></p>
+      <ul class="selection-list" id="selection-list"></ul>
+    </div>
+
+    <p class="muted">
+      Up to {{ max_files }} files per batch, {{ max_file_mb }} MB per file and
+      {{ max_total_mb }} MB in total.
+    </p>
+  </section>
+
+  <section class="card" aria-labelledby="step-settings">
+    <div class="card-head">
+      <span class="step">2</span>
+      <h2 id="step-settings">Check the settings</h2>
+      <p class="card-note">These start from the saved defaults and apply to this run only.</p>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting">
+        <label for="engine">Engine</label>
+        <select id="engine" name="engine">
+          {% for name in engines %}
+          <option value="{{ name }}" {{ 'selected' if options.engine == name }}>{{ name|capitalize }}</option>
+          {% endfor %}
+        </select>
+        <p class="hint">{{ descriptions['engine'] }}</p>
+      </div>
+
+      <div class="setting setting-toggle">
+        <label class="switch">
+          <input type="checkbox" id="flatten_annots" name="flatten_annots"
+                 {{ 'checked' if options.flatten_annots }}>
+          <span>Flatten annotations too</span>
+        </label>
+        <p class="hint">{{ descriptions['flatten_annots'] }}</p>
+      </div>
+
+      <div class="setting setting-toggle">
+        <label class="switch">
+          <input type="checkbox" id="allow_raster" name="allow_raster"
+                 {{ 'checked' if options.allow_raster }}>
+          <span>Allow rasterising as a last resort</span>
+        </label>
+        <p class="hint">{{ descriptions['allow_raster'] }}</p>
+      </div>
+    </div>
+
+    <details class="advanced">
+      <summary>Advanced</summary>
+      <div class="settings-grid">
+        <div class="setting setting-toggle">
+          <label class="switch">
+            <input type="checkbox" id="verify" name="verify" {{ 'checked' if options.verify }}>
+            <span>Verify every result</span>
+          </label>
+          <p class="hint">{{ descriptions['verify'] }}</p>
+        </div>
+
+        <div class="setting">
+          <label for="verify_dpi">Verification DPI</label>
+          <input type="number" id="verify_dpi" name="verify_dpi" min="36" max="300" step="1"
+                 value="{{ options.verify_dpi }}">
+          <p class="hint">{{ descriptions['verify_dpi'] }}</p>
+        </div>
+
+        <div class="setting">
+          <label for="tolerance">Tolerance</label>
+          <input type="number" id="tolerance" name="tolerance" min="0" max="0.5" step="0.001"
+                 value="{{ options.tolerance }}">
+          <p class="hint">{{ descriptions['tolerance'] }}</p>
+        </div>
+
+        <div class="setting">
+          <label for="raster_dpi">Raster DPI</label>
+          <input type="number" id="raster_dpi" name="raster_dpi" min="72" max="600" step="1"
+                 value="{{ options.raster_dpi }}">
+          <p class="hint">{{ descriptions['raster_dpi'] }}</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="card-actions">
+      <button type="button" class="button button-ghost" id="save-default">Save as default</button>
+      <span class="inline-status" id="save-status" role="status"></span>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="step-run">
+    <div class="card-head">
+      <span class="step">3</span>
+      <h2 id="step-run">Run</h2>
+    </div>
+
+    <div class="card-actions">
+      <button type="submit" class="button button-primary" id="start">Flatten PDFs</button>
+      <button type="button" class="button button-ghost" id="cancel" hidden>Cancel</button>
+    </div>
+
+    <p class="alert alert-error" id="form-error" role="alert" hidden></p>
+  </section>
+</form>
+
+{% set counters = [('ok', 'flattened'), ('warning', 'need review'), ('fail', 'failed')] %}
+{% include "partials/progress.html" %}
+
+<section class="card" id="results-card" aria-labelledby="results-title" hidden>
+  <div class="card-head">
+    <h2 id="results-title">Results</h2>
+  </div>
+  <p id="results-summary"></p>
+  <div id="results-extra"></div>
+  <div class="card-actions">
+    <a class="button button-primary" id="download-zip" href="#" hidden>Download flattened PDFs (ZIP)</a>
+    <a class="button button-ghost" id="download-log" href="#" hidden>Download report (CSV)</a>
+    <button type="button" class="button button-ghost" id="start-over">Flatten another batch</button>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if tool.available %}
+<script src="{{ url_for('static', path='job-runner.js') }}"></script>
+<script src="{{ url_for('static', path='flatten.js') }}"></script>
+{% endif %}
+{% endblock %}
