@@ -4,11 +4,10 @@
 
 {% block content %}
 <div class="page-intro">
-  <h1>Process property images</h1>
+  <h1>Process images</h1>
   <p>
-    Upload your export, check the settings, and start the run. When it finishes you
-    download a ZIP with every image renamed, resized and filed into folders.
-    Not sure about the file format? <a href="/images/help">Read the help page</a>.
+    Upload a CSV export, resize and rename, download a ZIP.
+    <a href="/images/help">Help</a>
   </p>
 </div>
 
@@ -16,16 +15,15 @@
   <section class="card" aria-labelledby="step-files">
     <div class="card-head">
       <span class="step">1</span>
-      <h2 id="step-files">Choose your files</h2>
+      <h2 id="step-files">Files</h2>
     </div>
 
     <div class="field-grid">
       <div class="file-field">
         <label for="source">Source export <span class="required">required</span></label>
         <p class="hint">
-          The CSV listing the images to process. It needs a header row with columns such as
-          <code>Full Path</code> and <code>Doc. Type</code>.
-          <a href="/api/images/templates/source">Download a template</a>.
+          CSV with columns such as <code>Full Path</code> and <code>Doc. Type</code>.
+          <a href="/api/images/templates/source">Template</a>
         </p>
         <input type="file" id="source" name="source" accept=".csv" required>
         <p class="file-chosen" data-for="source">No file chosen</p>
@@ -34,9 +32,8 @@
       <div class="file-field">
         <label for="property-map">Property mapping <span class="optional">optional</span></label>
         <p class="hint">
-          Maps property codes to property ids so older <code>p-code</code> URLs can be retried.
-          Leave empty if you do not have one.
-          <a href="/api/images/templates/property-map">Download a template</a>.
+          Maps property codes to ids for older p-code URLs.
+          <a href="/api/images/templates/property-map">Template</a>
         </p>
         <input type="file" id="property-map" name="property_map" accept=".csv">
         <p class="file-chosen" data-for="property-map">No file chosen</p>
@@ -47,8 +44,7 @@
   <section class="card" aria-labelledby="step-settings">
     <div class="card-head">
       <span class="step">2</span>
-      <h2 id="step-settings">Check the settings</h2>
-      <p class="card-note">These start from the saved defaults and apply to this run only.</p>
+      <h2 id="step-settings">Settings</h2>
     </div>
 
     <div class="settings-grid">
@@ -58,7 +54,6 @@
           <option value="2" {{ 'selected' if config.operationmode == 2 }}>Resize and rename</option>
           <option value="1" {{ 'selected' if config.operationmode == 1 }}>Rename only</option>
         </select>
-        <p class="hint">{{ descriptions['operationmode'] }}</p>
       </div>
 
       <div class="setting">
@@ -67,14 +62,12 @@
           <option value="MVC" {{ 'selected' if config.propertytype == 'MVC' }}>MVC</option>
           <option value="LEGACY" {{ 'selected' if config.propertytype == 'LEGACY' }}>Legacy</option>
         </select>
-        <p class="hint">{{ descriptions['propertytype'] }}</p>
       </div>
 
       <div class="setting">
         <label for="maxfilesizemb">Max file size (MB)</label>
         <input type="number" id="maxfilesizemb" name="maxfilesizemb" min="0.1" step="0.1"
                value="{{ config.maxfilesizemb }}">
-        <p class="hint">{{ descriptions['maxfilesizemb'] }}</p>
       </div>
 
       <div class="setting setting-toggle">
@@ -83,21 +76,18 @@
                  {{ 'checked' if config.manualsizing == 1 }}>
           <span>Manual sizing</span>
         </label>
-        <p class="hint">{{ descriptions['manualsizing'] }}</p>
       </div>
 
       <div class="setting">
         <label for="targetwidth">Target width (px)</label>
         <input type="number" id="targetwidth" name="targetwidth" min="1" step="1"
                value="{{ config.targetwidth }}">
-        <p class="hint">{{ descriptions['targetwidth'] }}</p>
       </div>
 
       <div class="setting">
         <label for="targetheight">Target height (px)</label>
         <input type="number" id="targetheight" name="targetheight" min="1" step="1"
                value="{{ config.targetheight }}">
-        <p class="hint">{{ descriptions['targetheight'] }}</p>
       </div>
 
       <div class="setting setting-toggle">
@@ -106,25 +96,14 @@
                  {{ 'checked' if config.optimizedsuffix == 1 }}>
           <span>Add "Optimized" suffix</span>
         </label>
-        <p class="hint">{{ descriptions['optimizedsuffix'] }}</p>
       </div>
     </div>
 
     <div class="card-actions">
+      <button type="submit" class="button button-primary" id="start">Start</button>
+      <button type="button" class="button button-ghost" id="cancel" hidden>Cancel</button>
       <button type="button" class="button button-ghost" id="save-default">Save as default</button>
       <span class="inline-status" id="save-status" role="status"></span>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="step-run">
-    <div class="card-head">
-      <span class="step">3</span>
-      <h2 id="step-run">Run</h2>
-    </div>
-
-    <div class="card-actions">
-      <button type="submit" class="button button-primary" id="start">Start processing</button>
-      <button type="button" class="button button-ghost" id="cancel" hidden>Cancel</button>
     </div>
 
     <p class="alert alert-error" id="form-error" role="alert" hidden></p>
@@ -141,9 +120,9 @@
   <p id="results-summary"></p>
   <div id="results-extra"></div>
   <div class="card-actions">
-    <a class="button button-primary" id="download-zip" href="#" hidden>Download images (ZIP)</a>
-    <a class="button button-ghost" id="download-log" href="#" hidden>Download process log (CSV)</a>
-    <button type="button" class="button button-ghost" id="start-over">Start another run</button>
+    <a class="button button-primary" id="download-zip" href="#" hidden>Download ZIP</a>
+    <a class="button button-ghost" id="download-log" href="#" hidden>Download log</a>
+    <button type="button" class="button button-ghost" id="start-over">Start over</button>
   </div>
 </section>
 {% endblock %}

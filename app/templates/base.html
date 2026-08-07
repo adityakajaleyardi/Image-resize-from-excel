@@ -33,7 +33,6 @@
         <a href="{{ current.path }}" class="{{ 'is-active' if active_page == 'run' else '' }}">Run</a>
         <a href="{{ current.help_path }}" class="{{ 'is-active' if active_page == 'help' else '' }}">Help</a>
       </nav>
-      <p class="subbar-note">{{ current.summary }}</p>
     </div>
   </div>
   {% endif %}
@@ -44,7 +43,7 @@
 
   <footer class="site-footer">
     <div class="shell">
-      Version {{ version }} &middot; Runs stay available for 24 hours, then are deleted from the server.
+      Version {{ version }} &middot; Runs deleted after 24 hours.
     </div>
   </footer>
 

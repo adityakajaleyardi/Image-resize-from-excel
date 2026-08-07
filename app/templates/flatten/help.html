@@ -4,49 +4,37 @@
 
 {% block content %}
 <div class="page-intro">
-  <h1>About flattening</h1>
+  <h1>PDF Flatten</h1>
   <p>
-    Flattening turns a fillable PDF into a fixed one. The values stay visible exactly where
-    they were, but they stop being editable fields, so a form filler cannot change them and
-    Acrobat's "Prepare Form" tool will not re-detect or delete them.
+    Turns fillable PDFs into fixed ones. Values stay visible, but stop being editable fields.
   </p>
 </div>
 
 <section class="card">
   <div class="card-head">
-    <h2>What you get back</h2>
+    <h2>Results</h2>
   </div>
   <p>
-    A ZIP containing every flattened PDF, arranged in the same folder structure you picked,
-    plus a file-by-file report named <code>Flatten_Report.csv</code>.
-    Each document ends up in one of three states.
+    You get a ZIP with the same folder structure you picked, plus <code>Flatten_Report.csv</code>.
   </p>
-
   <table class="table">
     <thead>
-      <tr><th>State</th><th>What it means</th><th>In the ZIP?</th></tr>
+      <tr><th>State</th><th>Meaning</th><th>In ZIP?</th></tr>
     </thead>
     <tbody>
       <tr>
         <td><span class="badge badge-ok">Flattened</span></td>
-        <td>The result was checked against the original and nothing moved or disappeared.</td>
+        <td>Verified against the original.</td>
         <td>Yes</td>
       </tr>
       <tr>
         <td><span class="badge badge-warning">Needs review</span></td>
-        <td>
-          No engine produced a result that passed the check, so the closest attempt was kept.
-          The report says what looked wrong, for example that a page lost part of its content.
-          Open these and confirm they are acceptable.
-        </td>
+        <td>Closest attempt kept; open and check. Detail is in the report.</td>
         <td>Yes</td>
       </tr>
       <tr>
         <td><span class="badge badge-fail">Failed</span></td>
-        <td>
-          Every engine failed outright, usually because the file is corrupt or password
-          protected. The reason is in the report.
-        </td>
+        <td>Corrupt, password protected, or unreadable.</td>
         <td>No</td>
       </tr>
     </tbody>
@@ -56,7 +44,7 @@
 <section class="card">
   <div class="card-head">
     <h2>Engines</h2>
-    <p class="card-note">No single technique copes with every PDF, so there is more than one.</p>
+    <p class="card-note">Leave on <code>auto</code> unless you are chasing a specific problem.</p>
   </div>
   <dl class="definitions">
     {% for name in engines %}
@@ -64,40 +52,6 @@
     <dd>{{ engine_descriptions[name] }}</dd>
     {% endfor %}
   </dl>
-  <p class="muted">
-    Leave this on <code>auto</code> unless you are chasing a specific problem. It tries the
-    engines in order and keeps the first result that verifies.
-  </p>
-</section>
-
-<section class="card">
-  <div class="card-head">
-    <h2>Settings</h2>
-  </div>
-  <dl class="definitions">
-    {% for field, description in descriptions.items() %}
-    {% if field != 'engine' %}
-    <dt><code>{{ field.replace('_', ' ') }}</code></dt>
-    <dd>{{ description }}</dd>
-    {% endif %}
-    {% endfor %}
-  </dl>
-</section>
-
-<section class="card">
-  <div class="card-head">
-    <h2>The report</h2>
-  </div>
-  <ul class="column-list">
-    {% for column in report_columns %}
-    <li><code>{{ column }}</code></li>
-    {% endfor %}
-  </ul>
-  <p class="muted">
-    "Content lost" and "content gained" are how much of the page's ink changed during
-    flattening, measured by rendering the page before and after. Small numbers are normal;
-    anything above the tolerance is what triggers a review flag.
-  </p>
 </section>
 
 <section class="card">
@@ -105,10 +59,10 @@
     <h2>Limits</h2>
   </div>
   <ul class="bullets">
-    <li>Up to {{ max_files }} files in one batch.</li>
-    <li>Up to {{ max_file_mb }} MB per file, and {{ max_total_mb }} MB in total.</li>
-    <li>Only files ending in <code>.pdf</code> are uploaded; anything else in the folder is ignored.</li>
-    <li>Runs and their downloads are deleted from the server after 24 hours.</li>
+    <li>{{ max_files }} files per batch, {{ max_file_mb }} MB per file, {{ max_total_mb }} MB total.</li>
+    <li>Only <code>.pdf</code> files are uploaded.</li>
+    <li>Folder picking needs Chrome or Edge; otherwise pick individual files.</li>
+    <li>Downloads are deleted after 24 hours.</li>
   </ul>
 </section>
 
@@ -117,22 +71,10 @@
     <h2>Common problems</h2>
   </div>
   <dl class="definitions">
-    <dt>Everything comes back as "needs review"</dt>
-    <dd>
-      Try turning on "allow rasterising as a last resort". It always reproduces the look of
-      the page, at the cost of the text no longer being selectable or searchable.
-    </dd>
-    <dt>A file failed and cannot be opened afterwards</dt>
-    <dd>It is most likely password protected or damaged. Open it yourself first and re-save it.</dd>
-    <dt>The choose-a-folder button does nothing</dt>
-    <dd>
-      Folder picking needs Chrome or Edge. In another browser, use "pick individual files" instead.
-    </dd>
-    <dt>Links stopped working</dt>
-    <dd>
-      They should not: links are deliberately left clickable. If a link really is gone, report
-      the file so it can be looked at.
-    </dd>
+    <dt>Everything needs review</dt>
+    <dd>Turn on “Allow rasterising as last resort” under Advanced.</dd>
+    <dt>A file failed</dt>
+    <dd>Usually password protected or damaged. Open it and re-save, then try again.</dd>
   </dl>
 </section>
 {% endblock %}

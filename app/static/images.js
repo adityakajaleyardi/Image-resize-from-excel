@@ -35,7 +35,7 @@
   JobRunner.create({
     createUrl: "/api/images/jobs",
     unit: "rows",
-    startLabel: "Start processing",
+    startLabel: "Start",
     busyLabel: "Processing...",
 
     buildPayload: function () {

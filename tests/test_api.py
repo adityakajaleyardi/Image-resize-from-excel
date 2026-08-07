@@ -55,7 +55,7 @@ class TestPages:
     def test_the_run_page_renders(self, client):
         response = client.get("/images")
         assert response.status_code == 200
-        assert "Process property images" in response.text
+        assert "Process images" in response.text
 
     def test_every_tool_appears_in_the_navigation(self, client):
         response = client.get("/images")

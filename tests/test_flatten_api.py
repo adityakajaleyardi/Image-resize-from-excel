@@ -59,6 +59,7 @@ class TestPages:
         assert response.status_code == 200
         assert "Flatten PDFs" in response.text
         assert "webkitdirectory" in response.text
+        assert "Advanced" in response.text
 
     def test_the_help_page_explains_the_three_outcomes(self, client):
         response = client.get("/flatten/help")

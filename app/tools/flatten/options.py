@@ -17,11 +17,10 @@ from typing import Any
 ENGINES = ("auto", "bake", "stamp", "raster")
 
 ENGINE_DESCRIPTIONS = {
-    "auto": "Try each engine in turn and keep the first result that verifies. Recommended.",
-    "bake": "PyMuPDF's native flattening. Fast, and right for most files.",
-    "stamp": "Draw each annotation into the page content. Handles files bake cannot.",
-    "raster": "Render every page to an image. Always looks right, but the text is no "
-    "longer selectable or searchable.",
+    "auto": "Tries bake, then stamp (and raster if allowed). Keeps the first result that verifies.",
+    "bake": "PyMuPDF native flatten. Fast; works for most files.",
+    "stamp": "Draws each annotation into the page content. Handles files bake cannot.",
+    "raster": "Renders every page to an image. Always looks right, but text is no longer searchable.",
 }
 
 FIELD_DESCRIPTIONS = {

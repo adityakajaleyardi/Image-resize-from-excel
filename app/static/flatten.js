@@ -141,7 +141,7 @@
   JobRunner.create({
     createUrl: "/api/flatten/jobs",
     unit: "files",
-    startLabel: "Flatten PDFs",
+    startLabel: "Flatten",
     busyLabel: "Flattening...",
 
     buildPayload: function () {
@@ -206,15 +206,8 @@
 
       var heading = document.createElement("h3");
       heading.className = "subheading";
-      heading.textContent = "Files to check";
+      heading.textContent = "Check these";
       container.append(heading);
-
-      var note = document.createElement("p");
-      note.className = "hint";
-      note.textContent =
-        "Files needing review are in the download; open them and confirm they look right. " +
-        "Failed files were not included.";
-      container.append(note);
 
       var list = document.createElement("ul");
       list.className = "flagged-list";
@@ -227,7 +220,7 @@
         badge.textContent = item.status;
 
         var text = document.createElement("span");
-        text.textContent = item.detail ? item.name + " - " + item.detail : item.name;
+        text.textContent = item.detail ? item.name + " — " + item.detail : item.name;
 
         row.append(badge, text);
         list.append(row);
