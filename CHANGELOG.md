@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-08-07
+
+The app now holds more than one tool. Bulk PDF flattening is the second, and the shell around it
+is general enough that a third should not require touching the job layer at all.
+
+### Added
+- **PDF Flatten tool.** Pick a folder, and every PDF in it has its form fields and annotations
+  baked permanently into the page. Results download as a ZIP mirroring the folder structure you
+  picked, with a `Flatten_Report.csv` beside them.
+- Files that came back imperfect are flagged rather than quietly handed over. Every result is
+  verified by rendering the pages before and after, giving three outcomes: flattened, needs
+  review, or failed. The report and the results panel say which and why.
+- Folder picking with `webkitdirectory`, filtered to PDFs, showing the count and total size before
+  anything is uploaded. Individual file selection is offered for browsers that cannot pick folders.
+- Flattening comes from the separate [Flatten](https://github.com/adityakajaleyardi/Flatten)
+  repository, installed as a pip dependency. The two repositories stay independent; nothing is
+  copied in. Install it with `requirements-flatten.txt` or from a local checkout with `pip install -e`.
+- The tool degrades gracefully: if the library is not installed the app still starts, every other
+  tool works, and the tab explains how to install it.
+- Tool tabs in the header, with a Run and Help page for each tool.
+- `app/uploads.py`, which strips `..`, drive letters and characters Windows rejects from every
+  uploaded filename before it touches disk.
+
+### Changed
+- `app/jobs.py` is now tool agnostic. `submit` takes a runner callable and a `JobContext` instead
+  of an image configuration, so the worker pool, event log, cancellation, ZIP packaging and expiry
+  are shared by every tool.
+- `Event` and the new `ToolError` moved to `app/events.py`, which the job layer imports instead of
+  the image pipeline.
+- `app/main.py` is now assembly plus the shared job endpoints. Tool specific routes live in
+  `app/tools/<tool>/routes.py`.
+- The polling, progress and results front end moved to `static/job-runner.js`, shared by both
+  tools. `static/app.js` became `static/images.js` and holds only what is image specific.
+- Routes are namespaced per tool. `/` now redirects to `/images`, `/help` became `/images/help`,
+  and `/api/jobs`, `/api/config/default` and `/api/templates/{name}` became `/api/images/...`.
+  Job status, cancel and download endpoints stay shared at `/api/jobs/{id}`.
+- Templates moved into a folder per tool, with the progress card extracted into a shared partial.
+- Environment variables are read as `TOOLKIT_*`, with the old `IMAGE_PROCESSOR_*` names still
+  honoured so an existing deployment keeps working.
+- The suite name lives in `APP_NAME` in `app/settings.py`, ready to be renamed in one place.
+- The saved image default stays at `data/default_config.json`, so existing settings carry over.
+
 ## [5.0.0] - 2026-08-06
 
 The tool is now a web app. Colleagues cannot run an unsigned executable on a company laptop, so
