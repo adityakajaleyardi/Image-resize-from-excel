@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Help &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>Help</h1>
+  <p>
+    {{ app_name }} holds the batch jobs the team used to run by hand. Pick a tool, give it your
+    files, and it hands back a ZIP with everything it produced and a report of what it did.
+  </p>
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2>The tools</h2>
+    <p class="card-note">Each one has its own page explaining the files it expects.</p>
+  </div>
+
+  <dl class="definitions">
+    {% for tool in tools %}
+    <dt>
+      <a href="{{ tool.path }}">{{ tool.label }}</a>
+      {% if not tool.available %}<span class="badge badge-warning">Not installed</span>{% endif %}
+    </dt>
+    <dd>
+      {{ tool.summary }}
+      <a href="{{ tool.help_path }}">{{ tool.label }} help</a>
+    </dd>
+    {% endfor %}
+  </dl>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>How a run works</h2>
+  </div>
+  <ul class="bullets">
+    <li>Choose your files, check the settings, then start the run.</li>
+    <li>
+      Progress is reported line by line while it works. One bad file is recorded and the rest of
+      the batch carries on, so a single problem never stops the job.
+    </li>
+    <li>
+      When it finishes you get a ZIP of the results and a CSV report listing every item with either
+      its new name or the reason it was left out.
+    </li>
+    <li>A run can be cancelled at any point. Whatever finished before that is still downloadable.</li>
+    <li>
+      Runs are deleted from the server after {{ retention_hours }} hours, so download what you need
+      on the day. Emails to HTML and Images clears up sooner than that, because what it
+      produces is personal data; its own help page says how long.
+    </li>
+  </ul>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>If something goes wrong</h2>
+  </div>
+  <ul class="bullets">
+    <li>Read the report in the ZIP first. Nearly every failure explains itself there.</li>
+    <li>Each tool's help page lists the problems that come up most often for that tool.</li>
+    <li>Folder picking needs Chrome or Edge. Other browsers can only take individual files.</li>
+    <li>
+      If a tool says it is not installed on this server, the machine hosting the app is missing a
+      library. Whoever hosts it can install it; the version below says which are present.
+    </li>
+  </ul>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>This build</h2>
+    <p class="card-note">Quote the version if you report a problem.</p>
+  </div>
+
+  <p>Version <strong>{{ version }}</strong></p>
+
+  <table class="table">
+    <thead>
+      <tr><th>Tool</th><th>On this server</th></tr>
+    </thead>
+    <tbody>
+      {% for tool in tools %}
+      <tr>
+        <td>{{ tool.label }}</td>
+        <td>
+          {% if tool.available %}
+          <span class="badge badge-ok">Installed</span>
+          {% else %}
+          <span class="badge badge-warning">Missing {{ tool.missing_requirement }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,18 @@
+# The Emails to HTML and Images tool.
+#
+# Kept out of requirements.txt on purpose: it is fetched from GitHub, so a
+# network that cannot reach github.com would otherwise break the install of
+# everything else. The app runs without it and marks the tool unavailable.
+#
+# Install alongside the core requirements:
+#     python -m pip install -r requirements-emails.txt
+#
+# Screenshots also need wkhtmltoimage, which is a program rather than a Python
+# package and so cannot be listed here. Without it the tool still runs and
+# produces HTML, but the screenshot option is disabled:
+#     Windows  download the installer from https://wkhtmltopdf.org/downloads.html
+#     Debian   sudo apt-get install -y wkhtmltopdf
+# It is found on PATH, at the default install location, or wherever the
+# WKHTMLTOIMAGE_PATH environment variable points.
+
+greystar-email-converter @ git+https://github.com/adityakajaleyardi/greystar-email-converter.git

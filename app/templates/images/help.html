@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Images help &middot; {{ app_name }}{% endblock %}
+{% block title %}Images from CSV help &middot; {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="page-intro">
-  <h1>File requirements</h1>
+  <h1>Images from CSV</h1>
   <p>
-    Plain CSV files. Column names must match exactly, including spaces and full stops.
-    In Excel: File → Save As → <strong>CSV (Comma delimited)</strong>.
+    Downloads the images listed in a CSV export, then resizes, renames and files them.
+    The files you upload must be plain CSV, and column names must match exactly, including
+    spaces and full stops. In Excel: File → Save As → <strong>CSV (Comma delimited)</strong>.
   </p>
 </div>
 

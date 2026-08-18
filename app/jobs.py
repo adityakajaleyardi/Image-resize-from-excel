@@ -8,6 +8,11 @@ packaged into a ZIP the user downloads. Workspaces are deleted once they expire.
 A tool takes part by handing `submit` a runner: a callable that receives a
 `JobContext` and returns a summary dictionary. The runner owns everything
 specific to that tool, which is why nothing in this module imports a pipeline.
+
+Two things a tool can ask for at submission time, both without naming itself
+here: its own worker, so a run measured in hours cannot fill the shared queue,
+and a retention window shorter than the default, for output too sensitive to sit
+on disk for a day.
 """
 
 from __future__ import annotations
@@ -34,6 +39,11 @@ logger = logging.getLogger(__name__)
 
 RESULTS_ZIP_NAME = "results.zip"
 EVENT_LOG_NAME = "events.jsonl"
+
+# A shorter retention has to survive a restart, or a workspace nobody remembers
+# creating would sit there for the default day instead. It is written into the
+# workspace so the sweep can honour it without knowing which tool made the job.
+RETENTION_MARKER_NAME = "retention-hours.txt"
 
 # Keeping every event for a very large run would grow without bound. Older
 # events are dropped once this many are held; the browser has already shown them.
@@ -84,6 +94,10 @@ class Job:
     #: Report written into the output directory, offered as a separate download.
     log_name: str = ""
     source_name: str = ""
+    #: Tools whose output is already compressed set this to ZIP_STORED.
+    zip_compression: int = zipfile.ZIP_DEFLATED
+    #: Overrides the server-wide retention. None means use the default.
+    retention_hours: int | None = None
     status: JobStatus = JobStatus.QUEUED
     processed: int = 0
     total: int = 0
@@ -150,42 +164,69 @@ class JobManager:
         self._lock = threading.Lock()
         # Created on start rather than here, so the manager can be started again
         # after a shutdown. A pool that has been shut down cannot be reused.
-        self._executor: ThreadPoolExecutor | None = None
+        # The shared pool is keyed None; a lane a tool asked for is keyed by name.
+        self._executors: dict[str | None, ThreadPoolExecutor] = {}
+        self._started = False
         self._shutdown = threading.Event()
         self._cleaner: threading.Thread | None = None
 
     def start(self) -> None:
         self._jobs_dir.mkdir(parents=True, exist_ok=True)
         self._shutdown.clear()
-        self._executor = ThreadPoolExecutor(max_workers=self._max_workers, thread_name_prefix="job")
+        self._executors = {None: ThreadPoolExecutor(max_workers=self._max_workers, thread_name_prefix="job")}
+        self._started = True
         self.cleanup_expired()
         self._cleaner = threading.Thread(target=self._cleanup_loop, name="job-cleanup", daemon=True)
         self._cleaner.start()
 
     def shutdown(self) -> None:
         self._shutdown.set()
+        self._started = False
         for job in self.all_jobs():
             job.cancel_event.set()
-        if self._executor is not None:
-            self._executor.shutdown(wait=False, cancel_futures=True)
-            self._executor = None
+        for executor in self._executors.values():
+            executor.shutdown(wait=False, cancel_futures=True)
+        self._executors = {}
 
-    def create(self, tool: str) -> Job:
+    def create(self, tool: str, *, retention_hours: int | None = None) -> Job:
         """Create an empty workspace ready to receive uploads."""
         job_id = uuid.uuid4().hex
         directory = self._jobs_dir / job_id
         (directory / "uploads").mkdir(parents=True, exist_ok=True)
         (directory / "output").mkdir(parents=True, exist_ok=True)
 
-        job = Job(id=job_id, directory=directory, created_at=datetime.now(timezone.utc), tool=tool)
+        if retention_hours is not None:
+            (directory / RETENTION_MARKER_NAME).write_text(str(retention_hours), encoding="utf-8")
+
+        job = Job(
+            id=job_id,
+            directory=directory,
+            created_at=datetime.now(timezone.utc),
+            tool=tool,
+            retention_hours=retention_hours,
+        )
         with self._lock:
             self._jobs[job_id] = job
         return job
 
-    def submit(self, job: Job, runner: Runner) -> None:
-        if self._executor is None:
+    def submit(self, job: Job, runner: Runner, *, lane: str | None = None) -> None:
+        """Queue a run, optionally in a lane of its own.
+
+        A tool whose runs last hours passes a lane so it queues against itself
+        rather than against the quick tools sharing the default pool.
+        """
+        if not self._started:
             self.start()
-        self._executor.submit(self._execute, job, runner)
+        self._executor_for(lane).submit(self._execute, job, runner)
+
+    def _executor_for(self, lane: str | None) -> ThreadPoolExecutor:
+        with self._lock:
+            executor = self._executors.get(lane)
+            if executor is None:
+                # One worker: the point of a lane is isolation, not more capacity.
+                executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix=f"job-{lane}")
+                self._executors[lane] = executor
+            return executor
 
     def get(self, job_id: str) -> Job | None:
         with self._lock:
@@ -213,12 +254,14 @@ class JobManager:
         return True
 
     def cleanup_expired(self) -> int:
-        """Delete workspaces past the retention window, on disk and in memory."""
-        cutoff = time.time() - self._retention_seconds
+        """Delete workspaces past their retention window, on disk and in memory."""
+        now = time.time()
         removed = 0
 
         for job in self.all_jobs():
-            if job.created_at.timestamp() < cutoff and job.status.is_finished:
+            if not job.status.is_finished:
+                continue
+            if job.created_at.timestamp() < now - self._seconds_for(job.retention_hours):
                 self.delete(job.id)
                 removed += 1
 
@@ -231,12 +274,17 @@ class JobManager:
             if not directory.is_dir() or directory.name in known:
                 continue
             try:
-                if directory.stat().st_mtime < cutoff:
+                if directory.stat().st_mtime < now - self._seconds_for(_marked_retention(directory)):
                     shutil.rmtree(directory, ignore_errors=True)
                     removed += 1
             except OSError:
                 continue
         return removed
+
+    def _seconds_for(self, retention_hours: int | None) -> float:
+        if retention_hours is None:
+            return self._retention_seconds
+        return retention_hours * 3600
 
     def _cleanup_loop(self) -> None:
         while not self._shutdown.wait(_CLEANUP_INTERVAL_SECONDS):
@@ -274,9 +322,13 @@ class JobManager:
             return
 
         self._append(job, Event("info", f"Packaging {len(files)} files for download..."))
+        deflating = job.zip_compression == zipfile.ZIP_DEFLATED
         try:
             with zipfile.ZipFile(
-                job.results_zip, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1
+                job.results_zip,
+                "w",
+                compression=job.zip_compression,
+                compresslevel=1 if deflating else None,
             ) as archive:
                 for path in files:
                     archive.write(path, path.relative_to(job.output_dir))
@@ -301,6 +353,14 @@ class JobManager:
                 handle.write(json.dumps(payload) + "\n")
         except OSError:
             pass
+
+
+def _marked_retention(directory: Path) -> int | None:
+    """The shorter retention a job asked for, if it left the marker behind."""
+    try:
+        return int((directory / RETENTION_MARKER_NAME).read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return None
 
 
 job_manager = JobManager()

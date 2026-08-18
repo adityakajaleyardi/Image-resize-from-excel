@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Emails to HTML and Images help &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>Emails to HTML and Images</h1>
+  <p>
+    The source system stores an email body compressed and encoded, so it is unreadable in
+    any export you pull from the database. This turns each one back into the HTML page it
+    was, and optionally takes a screenshot of it.
+  </p>
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2>What to upload</h2>
+  </div>
+  <p>
+    One CSV or Excel export, one row per email. Two columns matter: the one holding the
+    stored body, and the one holding the record id, which becomes the output filename.
+  </p>
+  <table class="table">
+    <thead>
+      <tr><th>Layout</th><th>Body column</th><th>Name column</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>CSV export</td><td><code>sBody</code></td><td><code>hResEmailLog</code></td></tr>
+      <tr><td>Legacy Excel</td><td><code>sEmailMessage</code></td><td><code>hHistoryId</code></td></tr>
+    </tbody>
+  </table>
+  <p class="muted">
+    Leave the setting on <strong>Detect from the file</strong> and the headings decide which
+    of the two it is. Choosing the wrong one by hand is the most common reason a run fails
+    before it starts, which is why detecting is the default.
+  </p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>What you get back</h2>
+  </div>
+  <p>The ZIP holds two folders, plus a log if anything failed:</p>
+  <ul class="bullets">
+    <li><code>html/</code> — one <code>.html</code> file per email, named after its record id.</li>
+    <li><code>images/</code> — one <code>.jpg</code> screenshot per email, if you asked for them.</li>
+    <li><code>Failed_Records.csv</code> — only written when something failed.</li>
+  </ul>
+  <p class="muted">
+    The width of each screenshot is read from the email itself, so a narrow newsletter and a
+    full width template come out at the sizes they were designed for.
+  </p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>What each outcome means</h2>
+  </div>
+  <table class="table">
+    <thead>
+      <tr><th>State</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-ok">Converted</span></td>
+        <td>The body decoded and the files were written.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-fail">Failed</span></td>
+        <td>
+          Usually an empty body, a value that is not a compressed email, or a blank record
+          id. One bad record never stops the run: the rest carry on and the failures are
+          listed on the results card and in the download.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Settings</h2>
+  </div>
+  <dl class="definitions">
+    <dt>Column layout</dt>
+    <dd>{{ descriptions.column_layout }}</dd>
+    <dt>Screenshots</dt>
+    <dd>
+      {{ descriptions.render_images }}
+      {% if not can_render %}
+      <strong>Not available on this server:</strong> wkhtmltoimage is not installed, so runs
+      produce HTML only. It is an ordinary program rather than a Python package, so it has to
+      be installed on the machine hosting this app before screenshots can work.
+      {% endif %}
+    </dd>
+  </dl>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Worth knowing</h2>
+  </div>
+  <ul class="bullets">
+    <li>
+      Screenshots take roughly a second each, so a few thousand emails is an hour or more.
+      Leave the tab open; the progress bar keeps counting and you can cancel at any point
+      and still download what was produced.
+    </li>
+    <li>
+      Turning screenshots off is much faster and is worth doing if you only need to read the
+      emails rather than look at them.
+    </li>
+    <li>
+      Long runs queue against each other rather than against the other tools, so starting a
+      big export will not hold up someone flattening a PDF.
+    </li>
+    <li>
+      Row numbers in the log are spreadsheet line numbers, so the first email is row 2.
+    </li>
+    <li>
+      <strong>Decoded emails contain resident names, addresses and lease details.</strong>
+      A finished run is deleted from the server after {{ tool_retention_hours }} hours, sooner
+      than the other tools, so download the ZIP while you have it and keep it somewhere
+      appropriate.
+    </li>
+  </ul>
+</section>
+{% endblock %}

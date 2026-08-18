@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "image-processor"
-version = "6.0.0"
-description = "Internal web app for batch jobs: property image processing and bulk PDF flattening"
+version = "7.0.0"
+description = "Internal web app for batch jobs: property image processing, bulk PDF flattening and email export conversion"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -37,6 +37,12 @@ dependencies = [
 # The PDF flatten tool. Installed separately so a network that cannot reach
 # github.com does not break the install of everything else.
 flatten = ["flatten-pdf @ git+https://github.com/adityakajaleyardi/Flatten.git"]
+folder = ["image-from-folder @ git+https://github.com/<org>/image-from-folder.git"]
+# Screenshots additionally need the wkhtmltoimage program, which pip cannot
+# install. See requirements-emails.txt.
+emails = [
+    "greystar-email-converter @ git+https://github.com/adityakajaleyardi/greystar-email-converter.git",
+]
 dev = [
     "pytest>=7.0",
     "httpx>=0.24",
@@ -47,7 +53,15 @@ dev = [
 image-processor = "cli:main"
 
 [tool.setuptools]
-packages = ["app", "app.processing", "app.tools", "app.tools.images", "app.tools.flatten"]
+packages = [
+    "app",
+    "app.processing",
+    "app.tools",
+    "app.tools.images",
+    "app.tools.flatten",
+    "app.tools.folder",
+    "app.tools.emails",
+]
 
 [tool.setuptools.package-data]
 app = ["templates/*.html", "templates/*/*.html", "static/*"]

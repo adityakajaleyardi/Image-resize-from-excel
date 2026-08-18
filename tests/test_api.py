@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.registry import TOOLS
 from tests.conftest import SOURCE_HEADER
 
 VALID_SETTINGS = {
@@ -47,20 +48,33 @@ def wait_for_finish(client, job_id, timeout=30):
 
 
 class TestPages:
-    def test_the_root_sends_you_to_the_first_tool(self, client):
-        response = client.get("/", follow_redirects=False)
-        assert response.status_code == 307
-        assert response.headers["location"] == "/images"
+    def test_the_root_renders_the_home_page(self, client):
+        response = client.get("/")
+        assert response.status_code == 200
+        assert b"Choose a tool" in response.content
+        for tool in TOOLS:
+            assert tool.label.encode() in response.content
 
     def test_the_run_page_renders(self, client):
         response = client.get("/images")
         assert response.status_code == 200
-        assert "Process images" in response.text
+        assert "Images from CSV" in response.text
 
     def test_every_tool_appears_in_the_navigation(self, client):
         response = client.get("/images")
         assert "PDF Flatten" in response.text
         assert 'href="/flatten"' in response.text
+
+    def test_the_home_page_leaves_the_navigation_to_the_tiles(self, client):
+        response = client.get("/")
+        assert 'class="site-nav"' not in response.text
+
+    def test_the_suite_help_page_links_to_every_tool(self, client):
+        response = client.get("/help")
+        assert response.status_code == 200
+        assert 'class="site-nav"' in response.text
+        for tool in TOOLS:
+            assert f'href="{tool.help_path}"' in response.text
 
     def test_the_help_page_lists_the_required_columns(self, client):
         response = client.get("/images/help")

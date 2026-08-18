@@ -7,8 +7,12 @@
   <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
   <link rel="icon" href="data:,">
 </head>
-<body>
-  {% set current = (tools | selectattr('id', 'equalto', active_tool) | first) if active_tool else none %}
+<body class="{% block body_class %}{% endblock %}">
+  {% if active_tool %}
+  {% set current = tools | selectattr('id', 'equalto', active_tool) | first %}
+  {% else %}
+  {% set current = none %}
+  {% endif %}
 
   <header class="site-header">
     <div class="shell header-inner">
@@ -16,13 +20,17 @@
         <span class="brand-mark" aria-hidden="true"></span>
         {{ app_name }}
       </a>
+      {# The home page is nothing but tiles for these, so the tabs would only repeat it. #}
+      {% if active_page != 'home' %}
       <nav class="site-nav" aria-label="Tools">
         {% for tool in tools %}
         <a href="{{ tool.path }}" class="{{ 'is-active' if active_tool == tool.id else '' }}">
           {{ tool.label }}{% if not tool.available %} <span class="dot-warning" title="Not available on this server" aria-hidden="true"></span>{% endif %}
         </a>
         {% endfor %}
+        <a href="/help" class="{{ 'is-active' if active_page == 'suite-help' else '' }}">Help</a>
       </nav>
+      {% endif %}
     </div>
   </header>
 
@@ -43,7 +51,10 @@
 
   <footer class="site-footer">
     <div class="shell">
-      Version {{ version }} &middot; Runs deleted after 24 hours.
+      {# The home page has a build tile carrying the version already. #}
+      {% if active_page != 'home' %}Version {{ version }} &middot; {% endif %}
+      {# A tool holding sensitive output sets its own, shorter window. #}
+      Runs deleted after {{ tool_retention_hours or retention_hours }} hours.
     </div>
   </footer>
 

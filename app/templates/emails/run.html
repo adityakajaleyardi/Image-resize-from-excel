@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Emails to HTML and Images &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>Emails to HTML and Images</h1>
+  <p>
+    Upload an email export, get readable HTML and screenshots back.
+    <a href="/emails/help">Help</a>
+  </p>
+</div>
+
+{% if not tool.available %}
+<section class="card">
+  <p class="alert alert-error">
+    This tool is not installed on this server. Install it with:
+  </p>
+  <pre class="code-block"><code>{{ tool.install_hint }}</code></pre>
+</section>
+{% else %}
+
+<form id="run-form" novalidate>
+  <section class="card" aria-labelledby="step-file">
+    <div class="card-head">
+      <span class="step">1</span>
+      <h2 id="step-file">Export</h2>
+      <p class="card-note">
+        The CSV or Excel export holding the stored email bodies, one row per email.
+      </p>
+    </div>
+
+    <div id="upload-limits" data-max-file-mb="{{ max_file_mb }}"></div>
+
+    <div class="file-field">
+      <label for="export">Email export <span class="required">required</span></label>
+      <p class="hint">Accepted: {{ accepted }}. Up to {{ max_file_mb }} MB.</p>
+      <input type="file" id="export" name="export" accept="{{ accepted }}" required>
+      {# Hidden until something is picked: the browser already writes its own
+         "no file chosen" beside the button. #}
+      <p class="file-chosen" id="export-chosen" hidden></p>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="step-settings">
+    <div class="card-head">
+      <span class="step">2</span>
+      <h2 id="step-settings">Settings</h2>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting">
+        <label for="column_layout">Column layout</label>
+        <select id="column_layout" name="column_layout">
+          {% for value, label in layouts.items() %}
+          <option value="{{ value }}" {{ 'selected' if options.column_layout == value }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <p class="hint">{{ descriptions.column_layout }}</p>
+      </div>
+
+      <div class="setting setting-toggle">
+        <label class="switch">
+          <input type="checkbox" id="render_images" name="render_images"
+                 {{ 'checked' if options.render_images and can_render }}
+                 {{ 'disabled' if not can_render }}>
+          <span>Also render JPG screenshots</span>
+        </label>
+        <p class="hint">
+          {% if can_render %}
+          {{ descriptions.render_images }}
+          {% else %}
+          Unavailable: wkhtmltoimage is not installed on this server, so only HTML can be
+          produced. See <a href="/emails/help">Help</a>.
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <p class="hint">
+      Decoded emails hold resident details, so a finished run is deleted from the server
+      after {{ tool_retention_hours }} hours. Download the ZIP before then.
+    </p>
+
+    <div class="card-actions">
+      <button type="submit" class="button button-primary" id="start">Convert</button>
+      <button type="button" class="button button-ghost" id="cancel" hidden>Cancel</button>
+      <button type="button" class="button button-ghost" id="save-default">Save as default</button>
+      <span class="inline-status" id="save-status" role="status"></span>
+    </div>
+
+    <p class="alert alert-error" id="form-error" role="alert" hidden></p>
+  </section>
+</form>
+
+{% set counters = [('ok', 'converted'), ('fail', 'failed')] %}
+{% include "partials/progress.html" %}
+
+<section class="card" id="results-card" aria-labelledby="results-title" hidden>
+  <div class="card-head">
+    <h2 id="results-title">Results</h2>
+  </div>
+  <p id="results-summary"></p>
+  <div id="results-extra"></div>
+  <div class="card-actions">
+    <a class="button button-primary" id="download-zip" href="#" hidden>Download ZIP</a>
+    <a class="button button-ghost" id="download-log" href="#" hidden>Download failures</a>
+    <button type="button" class="button button-ghost" id="start-over">Start over</button>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if tool.available %}
+<script src="{{ url_for('static', path='job-runner.js') }}"></script>
+<script src="{{ url_for('static', path='emails.js') }}"></script>
+{% endif %}
+{% endblock %}

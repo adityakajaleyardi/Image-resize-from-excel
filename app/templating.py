@@ -12,9 +12,14 @@ from fastapi.templating import Jinja2Templates
 
 from . import __version__
 from .registry import TOOLS
-from .settings import APP_NAME
+from .settings import APP_NAME, JOB_RETENTION_HOURS
 
 APP_DIR = Path(__file__).resolve().parent
 
 templates = Jinja2Templates(directory=APP_DIR / "templates")
-templates.env.globals.update(app_name=APP_NAME, tools=TOOLS, version=__version__)
+templates.env.globals.update(
+    app_name=APP_NAME,
+    tools=TOOLS,
+    version=__version__,
+    retention_hours=JOB_RETENTION_HOURS,
+)

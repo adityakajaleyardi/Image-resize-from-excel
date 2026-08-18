@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-08-13
+
+Two more tools, and a home page to choose between them. The job layer took the two changes
+Emails to HTML and Images needed, both written so no future tool has to touch it either.
+
+### Added
+- **Emails to HTML and Images tool.** Upload a CSV or Excel export of stored email bodies and get
+  back a ZIP of readable HTML and JPG screenshots, one per email. Conversion comes from the separate
+  [greystar-email-converter](https://github.com/adityakajaleyardi/greystar-email-converter)
+  package, installed as a pip dependency; nothing is copied in.
+- The column layout is detected from the file's headings. Two shapes of export are in circulation
+  and picking the wrong one by hand was the usual reason a run failed, so the dropdown is now an
+  override rather than a decision. A file in neither layout fails naming both, and listing the
+  columns it did find.
+- Screenshots can be turned off, which is much faster and needs no `wkhtmltoimage`. When the binary
+  is missing the option is disabled rather than the tool, since decoding to HTML works without it.
+  Its presence is reported at startup, on the run page, and by `start_server.ps1`.
+- **Images from Folder tool.** The Yardi naming convention applied to a folder of images already on
+  disk. Unit images fan out to one output per apartment, cross referenced against three uploaded
+  lookup files. From the separate `image-from-folder` package.
+- A home page of tiles for choosing a tool, and a suite level help page.
+
+### Changed
+- `JobManager.submit` takes an optional `lane`, putting a tool's runs on a worker of their own.
+  Email conversion uses it: an export can take hours, and would otherwise hold one of the two
+  shared workers against everyone else's few-minute job.
+- `JobManager.create` takes an optional `retention_hours`. Email conversions are deleted after two
+  hours rather than the usual 24, because decoded emails hold resident names, addresses and lease
+  details. The window is written into the workspace, so it survives a restart.
+- The theme is flat teal tiles on a warm background, applied across every page.
+
+### Security
+- The email failure log, which a user downloads, keeps the other columns from the export but not
+  the body column, so it never carries a copy of an email.
+- Failure reasons are stripped of the raw bytes the decoder quotes from a value it could not read.
+- Only record ids are logged, never email content.
+
+### Notes
+- There is still no authentication anywhere in the app, which now matters more than it did: the
+  the output of Emails to HTML and Images is personal data. Job ids are unguessable and output is never
+  served as a static file, but that is obscurity rather than access control. Treat the host
+  accordingly.
+
 ## [6.0.0] - 2026-08-07
 
 The app now holds more than one tool. Bulk PDF flattening is the second, and the shell around it

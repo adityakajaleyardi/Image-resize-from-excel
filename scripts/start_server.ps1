@@ -40,12 +40,34 @@ if (-not $SkipDependencyCheck) {
         }
     }
 
-    # Optional: the PDF Flatten tool. The app runs without it and says the tool is
-    # unavailable, so a missing or unreachable install must not stop the server.
-    python -c "import flatten_pdf" 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host 'PDF Flatten is not installed. That tool will show as unavailable.' -ForegroundColor Yellow
-        Write-Host '  To add it: python -m pip install -r requirements-flatten.txt' -ForegroundColor DarkGray
+    # Optional tools. The app runs without any of them and says so on the tab, so
+    # a missing or unreachable install must never stop the server.
+    $optional = @(
+        @{ Module = 'flatten_pdf';              Name = 'PDF Flatten';                Requirements = 'requirements-flatten.txt' },
+        @{ Module = 'image_from_folder';        Name = 'Images from Folder';         Requirements = 'requirements-folder.txt' },
+        @{ Module = 'greystar_email_converter'; Name = 'Emails to HTML and Images'; Requirements = 'requirements-emails.txt' }
+    )
+
+    foreach ($tool in $optional) {
+        python -c "import $($tool.Module)" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "$($tool.Name) is not installed. That tool will show as unavailable." -ForegroundColor Yellow
+            Write-Host "  To add it: python -m pip install -r $($tool.Requirements)" -ForegroundColor DarkGray
+        }
+    }
+
+    # Emails to HTML and Images screenshots each email by shelling out to wkhtmltoimage,
+    # which is an ordinary program and cannot be pip installed. Checked here so a
+    # missing install is found now rather than by the first person to run a job.
+    # Decoding to HTML works without it, so this is a warning, not a failure.
+    python -c "import greystar_email_converter" 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        python -c "from greystar_email_converter import find_wkhtmltoimage; find_wkhtmltoimage()" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host 'wkhtmltoimage was not found. Email runs will produce HTML but no screenshots.' -ForegroundColor Yellow
+            Write-Host '  Install it from https://wkhtmltopdf.org/downloads.html, or set WKHTMLTOIMAGE_PATH' -ForegroundColor DarkGray
+            Write-Host '  to the full path of wkhtmltoimage.exe.' -ForegroundColor DarkGray
+        }
     }
 }
 
