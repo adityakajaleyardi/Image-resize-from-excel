@@ -1,4 +1,4 @@
-"""The HTTP surface, including the errors a user is most likely to hit."""
+"""The HTTP surface of the image tool, including the errors a user is most likely to hit."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.registry import TOOLS
 from tests.conftest import SOURCE_HEADER
 
 VALID_SETTINGS = {
@@ -47,41 +48,61 @@ def wait_for_finish(client, job_id, timeout=30):
 
 
 class TestPages:
-    def test_the_run_page_renders(self, client):
+    def test_the_root_renders_the_home_page(self, client):
         response = client.get("/")
         assert response.status_code == 200
-        assert "Process property images" in response.text
+        assert b"Choose a tool" in response.content
+        for tool in TOOLS:
+            assert tool.label.encode() in response.content
+
+    def test_the_run_page_renders(self, client):
+        response = client.get("/images")
+        assert response.status_code == 200
+        assert "Images from CSV" in response.text
+
+    def test_every_tool_appears_in_the_navigation(self, client):
+        response = client.get("/images")
+        assert "PDF Flatten" in response.text
+        assert 'href="/flatten"' in response.text
+
+    def test_the_home_page_leaves_the_navigation_to_the_tiles(self, client):
+        response = client.get("/")
+        assert 'class="site-nav"' not in response.text
+
+    def test_the_suite_help_page_links_to_every_tool(self, client):
+        response = client.get("/help")
+        assert response.status_code == 200
+        assert 'class="site-nav"' in response.text
+        for tool in TOOLS:
+            assert f'href="{tool.help_path}"' in response.text
 
     def test_the_help_page_lists_the_required_columns(self, client):
-        response = client.get("/help")
+        response = client.get("/images/help")
         assert response.status_code == 200
         assert "Doc. Type" in response.text
         assert "Target Image Name" in response.text
 
     def test_templates_can_be_downloaded(self, client):
-        response = client.get("/api/templates/source")
+        response = client.get("/api/images/templates/source")
         assert response.status_code == 200
         assert "Full Path" in response.text
 
     def test_an_unknown_template_is_not_found(self, client):
-        assert client.get("/api/templates/secrets").status_code == 404
+        assert client.get("/api/images/templates/secrets").status_code == 404
 
 
 class TestDefaultConfig:
     def test_saving_a_default_changes_what_is_returned(self, client, tmp_path, monkeypatch):
-        from app import main, settings
+        from app.tools.images import settings
 
-        monkeypatch.setattr(settings, "DATA_DIR", tmp_path)
         monkeypatch.setattr(settings, "DEFAULT_CONFIG_PATH", tmp_path / "default_config.json")
-        monkeypatch.setattr(main, "save_default_config", settings.save_default_config)
-        monkeypatch.setattr(main, "load_default_config", settings.load_default_config)
 
-        saved = client.post("/api/config/default", json={**VALID_SETTINGS, "maxfilesizemb": "4.5"})
+        saved = client.post("/api/images/config/default", json={**VALID_SETTINGS, "maxfilesizemb": "4.5"})
         assert saved.status_code == 200
-        assert client.get("/api/config/default").json()["maxfilesizemb"] == 4.5
+        assert client.get("/api/images/config/default").json()["maxfilesizemb"] == 4.5
 
     def test_an_impossible_setting_is_rejected(self, client):
-        response = client.post("/api/config/default", json={**VALID_SETTINGS, "operationmode": "7"})
+        response = client.post("/api/images/config/default", json={**VALID_SETTINGS, "operationmode": "7"})
         assert response.status_code == 400
         assert "Operation mode" in response.json()["detail"]
 
@@ -89,7 +110,7 @@ class TestDefaultConfig:
 class TestJobCreation:
     def test_a_missing_column_is_reported_before_the_job_starts(self, client):
         response = client.post(
-            "/api/jobs",
+            "/api/images/jobs",
             files={"source": ("Source.csv", "Property Code,File Name\np1,x.jpg\n", "text/csv")},
             data=VALID_SETTINGS,
         )
@@ -98,7 +119,7 @@ class TestJobCreation:
 
     def test_a_non_csv_upload_is_refused(self, client):
         response = client.post(
-            "/api/jobs",
+            "/api/images/jobs",
             files={"source": ("Source.xlsx", b"not a csv", "application/vnd.ms-excel")},
             data=VALID_SETTINGS,
         )
@@ -107,7 +128,7 @@ class TestJobCreation:
 
     def test_an_empty_upload_is_refused(self, client):
         response = client.post(
-            "/api/jobs",
+            "/api/images/jobs",
             files={"source": ("Source.csv", b"", "text/csv")},
             data=VALID_SETTINGS,
         )
@@ -115,7 +136,7 @@ class TestJobCreation:
 
     def test_a_bad_mapping_file_is_reported(self, client, image_server):
         response = client.post(
-            "/api/jobs",
+            "/api/images/jobs",
             files={
                 "source": ("Source.csv", source_csv(image_server), "text/csv"),
                 "property_map": ("PropertyHMY.csv", "Name,Town\na,b\n", "text/csv"),
@@ -129,7 +150,7 @@ class TestJobCreation:
 class TestJobLifecycle:
     def test_a_run_completes_and_produces_a_download(self, client, image_server):
         created = client.post(
-            "/api/jobs",
+            "/api/images/jobs",
             files={"source": ("Source.csv", source_csv(image_server), "text/csv")},
             data=VALID_SETTINGS,
         )
@@ -138,19 +159,21 @@ class TestJobLifecycle:
 
         state = wait_for_finish(client, job_id)
         assert state["status"] == "completed"
+        assert state["tool"] == "images"
         assert state["summary"]["succeeded"] == 1
         assert state["has_results"]
 
         archive = client.get(f"/api/jobs/{job_id}/download")
         assert archive.status_code == 200
         assert archive.headers["content-type"] == "application/zip"
+        assert "Processed_Images" in archive.headers["content-disposition"]
 
         log = client.get(f"/api/jobs/{job_id}/log")
         assert log.status_code == 200
 
     def test_polling_with_a_cursor_only_returns_new_events(self, client, image_server):
         job_id = client.post(
-            "/api/jobs",
+            "/api/images/jobs",
             files={"source": ("Source.csv", source_csv(image_server), "text/csv")},
             data=VALID_SETTINGS,
         ).json()["id"]

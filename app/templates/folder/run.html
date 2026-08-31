@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Images from Folder &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>Images from Folder</h1>
+  <p>
+    Resize, rename and file a folder of property images into the Yardi convention.
+    <a href="/folder/help">Help</a>
+  </p>
+</div>
+
+{% if not tool.available %}
+<section class="card">
+  <p class="alert alert-error">
+    This tool is not installed on this server. Install it with:
+  </p>
+  <pre class="code-block"><code>{{ tool.install_hint }}</code></pre>
+</section>
+{% else %}
+
+<form id="run-form" novalidate>
+  <section class="card" aria-labelledby="step-images">
+    <div class="card-head">
+      <span class="step">1</span>
+      <h2 id="step-images">Images</h2>
+      <p class="card-note">
+        Pick the folder that holds your property folders, arranged as
+        <code>property code / document type / image</code>.
+      </p>
+    </div>
+
+    <div id="upload-limits"
+         data-max-files="{{ max_files }}"
+         data-max-file-mb="{{ max_file_mb }}"
+         data-max-total-mb="{{ max_total_mb }}"></div>
+
+    <div class="file-field">
+      <label for="image-folder">Folder<span class="required">Required</span></label>
+      <p class="hint">Only image files are uploaded. Anything else in the folder is left behind.</p>
+      <input type="file" id="image-folder" webkitdirectory directory multiple>
+    </div>
+
+    <div class="selection" id="selection" hidden>
+      <div class="selection-head">
+        <p class="selection-summary" id="selection-summary"></p>
+        <button type="button" class="button button-ghost button-small" id="clear-selection">Clear</button>
+      </div>
+      <p class="hint selection-note" id="selection-note" hidden></p>
+      <ul class="selection-list" id="selection-list"></ul>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="step-lookups">
+    <div class="card-head">
+      <span class="step">2</span>
+      <h2 id="step-lookups">Unit lookups</h2>
+      <p class="card-note">
+        Needed only for unit images, where one floor plan is shared by many apartments.
+        Skip this if you are not processing any.
+      </p>
+    </div>
+
+    <div class="field-grid">
+      <div class="file-field">
+        <label for="unit-mapping">UnitMapping.csv<span class="optional">Optional</span></label>
+        <input type="file" id="unit-mapping" accept=".csv">
+        <p class="file-chosen" id="unit-mapping-chosen" hidden></p>
+      </div>
+
+      <div class="file-field">
+        <label for="unit-summary">CompanyUnitSummery.csv<span class="optional">Optional</span></label>
+        <input type="file" id="unit-summary" accept=".csv">
+        <p class="file-chosen" id="unit-summary-chosen" hidden></p>
+      </div>
+
+      <div class="file-field">
+        <label for="property-list">PropertyList-Property.csv<span class="optional">Optional</span></label>
+        <input type="file" id="property-list" accept=".csv">
+        <p class="file-chosen" id="property-list-chosen" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="step-settings">
+    <div class="card-head">
+      <span class="step">3</span>
+      <h2 id="step-settings">Settings</h2>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting">
+        <label for="operation_mode">Operation</label>
+        <select id="operation_mode" name="operation_mode">
+          {% for mode_id, mode_label in modes.items() %}
+          <option value="{{ mode_id }}" {{ 'selected' if options.operation_mode == mode_id }}>{{ mode_label }}</option>
+          {% endfor %}
+        </select>
+        <p class="hint">{{ descriptions.operation_mode }}</p>
+      </div>
+
+      <div class="setting">
+        <label for="max_file_size_mb">Max file size (MB)</label>
+        <input type="number" id="max_file_size_mb" name="max_file_size_mb"
+               min="0.1" max="10" step="0.1" value="{{ options.max_file_size_mb }}">
+        <p class="hint">{{ descriptions.max_file_size_mb }}</p>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button type="submit" class="button button-primary" id="start">Process</button>
+      <button type="button" class="button button-ghost" id="cancel" hidden>Cancel</button>
+      <button type="button" class="button button-ghost" id="save-default">Save as default</button>
+      <span class="inline-status" id="save-status" role="status"></span>
+    </div>
+
+    <p class="alert alert-error" id="form-error" role="alert" hidden></p>
+  </section>
+</form>
+
+{% set counters = [('ok', 'processed'), ('skip', 'no matching units'), ('fail', 'failed')] %}
+{% include "partials/progress.html" %}
+
+<section class="card" id="results-card" aria-labelledby="results-title" hidden>
+  <div class="card-head">
+    <h2 id="results-title">Results</h2>
+  </div>
+  <p id="results-summary"></p>
+  <div id="results-extra"></div>
+  <div class="card-actions">
+    <a class="button button-primary" id="download-zip" href="#" hidden>Download ZIP</a>
+    <a class="button button-ghost" id="download-log" href="#" hidden>Download report</a>
+    <button type="button" class="button button-ghost" id="start-over">Start over</button>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if tool.available %}
+<script src="{{ url_for('static', path='job-runner.js') }}"></script>
+<script src="{{ url_for('static', path='folder.js') }}"></script>
+{% endif %}
+{% endblock %}

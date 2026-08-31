@@ -1,0 +1,1 @@
+-e "C:/Users/ak33408/Desktop/Python/Images from folder/Image Code from folders"

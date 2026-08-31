@@ -1,31 +1,54 @@
+/*
+  Flat, squared-off and teal on beige, after the Windows 8 Start screen: no
+  rounded corners and no shadows. Tiles and cards are solid fills; the only
+  gradient anywhere is the page wash on `body`. Cards are white so they lift off
+  the beige, every other neutral is warm so nothing reads cold against it, and
+  every colour that carries text is dark enough to clear WCAG AA on the surface
+  it sits on, which rules out the lighter teals for anything but fills.
+*/
 :root {
-  --bg: #f4f6f9;
+  --bg: #f5f7ec;
   --surface: #ffffff;
-  --border: #dfe4ec;
-  --border-strong: #c6cedb;
-  --text: #16202e;
-  --text-muted: #5d6b80;
-  --accent: #1f5fd6;
-  --accent-dark: #17489f;
-  --accent-soft: #eaf1fe;
-  --ok: #1c7a4a;
-  --fail: #bf2c33;
-  --warn: #9a6212;
-  --radius: 10px;
-  --shadow: 0 1px 2px rgba(19, 32, 51, 0.06), 0 6px 20px rgba(19, 32, 51, 0.05);
+  --border: #e6e8d8;
+  --border-strong: #cfd4bd;
+  --text: #1b2624;
+  --text-muted: #5f5b4e;
+  --accent: #0d9488;
+  --accent-dark: #0f766e;
+  --accent-deep: #115e59;
+  --accent-darkest: #134e4a;
+  --accent-soft: #cfeee7;
+  --tint: #fcf9f2;
+  --ok: #0b7a55;
+  --fail: #c02626;
+  --warn: #8f5700;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* .button sets display, which would otherwise beat the browser's [hidden] rule. */
+[hidden] {
+  display: none !important;
+}
+
+/*
+  Tiles and cards stay flat, but the page itself gets one very soft wash from
+  mint at the top into the beige: a single flat fill over a whole 1080p window
+  reads as dead space.
+*/
 body {
   margin: 0;
   background: var(--bg);
+  background-image: linear-gradient(175deg, #ebf8f2 0%, var(--bg) 60%);
+  background-attachment: fixed;
   color: var(--text);
-  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .shell {
@@ -37,7 +60,7 @@ body {
 
 .site-header {
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 3px solid var(--accent-dark);
 }
 
 .header-inner {
@@ -53,39 +76,49 @@ body {
   align-items: center;
   gap: 0.6rem;
   font-size: 1.05rem;
-  font-weight: 650;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--text);
   text-decoration: none;
 }
 
 .brand-mark {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  background: linear-gradient(135deg, var(--accent), #4d8ef7);
+  width: 18px;
+  height: 18px;
+  background: var(--accent-dark);
+}
+
+.brand:focus-visible,
+.site-nav a:focus-visible,
+.sub-nav a:focus-visible {
+  outline: 2px solid var(--accent-dark);
+  outline-offset: 2px;
 }
 
 .site-nav {
   display: flex;
-  gap: 0.35rem;
+  flex-wrap: wrap;
+  gap: 2px;
 }
 
 .site-nav a {
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0.25rem 0.8rem;
   color: var(--text-muted);
   text-decoration: none;
   font-weight: 550;
 }
 
 .site-nav a:hover {
-  background: var(--bg);
-  color: var(--text);
+  background: var(--tint);
+  color: var(--accent-deep);
 }
 
 .site-nav a.is-active {
-  background: var(--accent-soft);
-  color: var(--accent-dark);
+  background: var(--accent-dark);
+  color: #fff;
 }
 
 .site-footer {
@@ -97,28 +130,28 @@ body {
 /* Page intro */
 
 .page-intro {
-  margin: 2.25rem 0 1.5rem;
+  margin: 2rem 0 1.25rem;
 }
 
 .page-intro h1 {
   margin: 0 0 0.4rem;
-  font-size: 1.65rem;
-  letter-spacing: -0.01em;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .page-intro p {
   margin: 0;
-  max-width: 68ch;
+  max-width: 65ch;
   color: var(--text-muted);
+  font-size: 1.05rem;
 }
 
-/* Cards */
+/* Cards. The heading band is the tile idea carried into the pages. */
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
 }
@@ -127,33 +160,47 @@ body {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 0 0.75rem;
-  margin-bottom: 1.1rem;
+  gap: 0 0.7rem;
+  margin: -1.5rem -1.5rem 1.25rem;
+  padding: 0.7rem 1.5rem;
+  background: var(--accent-dark);
+  color: #fff;
 }
 
 .card-head h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .card-head h3,
 .card h3 {
   margin: 1.5rem 0 0.5rem;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  color: var(--accent-dark);
 }
 
 .card-note {
   grid-column: 2;
   margin: 0.15rem 0 0;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.9rem;
 }
 
+/* The usual pale code chip would vanish against the heading band. */
+.card-head code {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+
 .card-head > h2:first-child,
-.card-head > .card-note:first-child {
+.card-head > .card-note:first-child,
+.card-head > h2:first-child + .card-note {
   grid-column: 1 / -1;
 }
 
@@ -163,11 +210,10 @@ body {
   width: 26px;
   height: 26px;
   grid-row: span 2;
-  border-radius: 50%;
-  background: var(--accent-soft);
+  background: #fff;
   color: var(--accent-dark);
   font-size: 0.85rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .card-actions {
@@ -197,10 +243,9 @@ body {
 .optional {
   display: inline-block;
   margin-left: 0.35rem;
-  padding: 0.05rem 0.4rem;
-  border-radius: 999px;
+  padding: 0.1rem 0.4rem;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   vertical-align: 1px;
@@ -208,12 +253,12 @@ body {
 
 .required {
   background: var(--accent-soft);
-  color: var(--accent-dark);
+  color: var(--accent-deep);
 }
 
 .optional {
-  background: #eef1f5;
-  color: var(--text-muted);
+  background: var(--border);
+  color: var(--text);
 }
 
 .hint {
@@ -224,16 +269,22 @@ body {
 
 input[type="file"] {
   width: 100%;
-  padding: 0.6rem;
-  border: 1px dashed var(--border-strong);
-  border-radius: 8px;
-  background: #fbfcfe;
+  padding: 0.8rem;
+  border: 2px dashed var(--border-strong);
+  background: var(--tint);
   cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+input[type="file"]:hover {
+  border-color: var(--accent-dark);
+  background: var(--bg);
 }
 
 input[type="file"]:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-dark);
   outline-offset: 2px;
+  border-color: var(--accent-dark);
 }
 
 .file-chosen {
@@ -244,7 +295,7 @@ input[type="file"]:focus-visible {
 
 .file-chosen.is-set {
   color: var(--ok);
-  font-weight: 550;
+  font-weight: 600;
 }
 
 /* Settings */
@@ -258,37 +309,50 @@ input[type="file"]:focus-visible {
 .setting select,
 .setting input[type="number"] {
   width: 100%;
-  padding: 0.5rem 0.6rem;
+  min-height: 42px;
+  padding: 0.5rem 0.7rem;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
   background: var(--surface);
   color: inherit;
   font: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.setting select:hover:not(:disabled),
+.setting input:hover:not(:disabled) {
+  border-color: var(--accent-dark);
 }
 
 .setting select:focus-visible,
 .setting input:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-dark);
   outline-offset: 1px;
+  border-color: var(--accent-dark);
 }
 
 .setting.is-disabled {
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .switch {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 42px;
   cursor: pointer;
   font-weight: 600;
 }
 
 .switch input {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   accent-color: var(--accent);
   cursor: pointer;
+}
+
+.switch input:focus-visible {
+  outline: 2px solid var(--accent-dark);
+  outline-offset: 2px;
 }
 
 .setting-toggle .hint {
@@ -301,28 +365,33 @@ input[type="file"]:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.55rem 1.1rem;
+  min-height: 42px;
+  padding: 0.5rem 1.35rem;
   border: 1px solid transparent;
-  border-radius: 8px;
   font: inherit;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.12s ease, border-color 0.12s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .button:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
+.button:focus-visible {
+  outline: 2px solid var(--accent-darkest);
+  outline-offset: 2px;
+}
+
 .button-primary {
-  background: var(--accent);
+  background: var(--accent-dark);
   color: #fff;
 }
 
 .button-primary:hover:not(:disabled) {
-  background: var(--accent-dark);
+  background: var(--accent-darkest);
 }
 
 .button-ghost {
@@ -332,7 +401,9 @@ input[type="file"]:focus-visible {
 }
 
 .button-ghost:hover:not(:disabled) {
-  background: var(--bg);
+  background: var(--tint);
+  border-color: var(--accent-dark);
+  color: var(--accent-deep);
 }
 
 .inline-status {
@@ -345,30 +416,27 @@ input[type="file"]:focus-visible {
 .alert {
   margin: 1rem 0 0;
   padding: 0.7rem 0.9rem;
-  border-radius: 8px;
   font-size: 0.9rem;
 }
 
 .alert-error {
-  background: #fdeced;
-  border: 1px solid #f3c3c6;
+  background: #fbeaea;
+  border-left: 4px solid var(--fail);
   color: var(--fail);
 }
 
 /* Progress */
 
 .progress-track {
-  height: 8px;
-  border-radius: 999px;
-  background: #e8ecf3;
+  height: 10px;
+  background: var(--border-strong);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   width: 0;
-  border-radius: 999px;
-  background: var(--accent);
+  background: var(--accent-dark);
   transition: width 0.25s ease;
 }
 
@@ -384,7 +452,7 @@ input[type="file"]:focus-visible {
 
 .counter-value {
   font-size: 1.05rem;
-  font-weight: 650;
+  font-weight: 700;
   color: var(--text);
 }
 
@@ -393,8 +461,7 @@ input[type="file"]:focus-visible {
   overflow-y: auto;
   padding: 0.75rem 0.9rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fbfcfe;
+  background: var(--tint);
   font-family: Consolas, "SF Mono", Menlo, monospace;
   font-size: 0.8rem;
   line-height: 1.6;
@@ -404,7 +471,7 @@ input[type="file"]:focus-visible {
   display: flex;
   gap: 0.6rem;
   padding: 0.05rem 0;
-  border-bottom: 1px solid #f0f3f7;
+  border-bottom: 1px solid var(--border);
   word-break: break-word;
 }
 
@@ -468,9 +535,10 @@ input[type="file"]:focus-visible {
 }
 
 .table th {
+  background: var(--tint);
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
 }
 
@@ -480,14 +548,216 @@ input[type="file"]:focus-visible {
 
 code {
   padding: 0.05rem 0.3rem;
-  border-radius: 4px;
-  background: #eef1f6;
+  background: var(--border);
   font-family: Consolas, "SF Mono", Menlo, monospace;
   font-size: 0.85em;
 }
 
 a {
-  color: var(--accent-dark);
+  color: var(--accent-deep);
+}
+
+/* Tool sub navigation */
+
+.subbar {
+  background: var(--tint);
+  border-bottom: 1px solid var(--border);
+}
+
+.subbar-inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  min-height: 44px;
+}
+
+.sub-nav {
+  display: flex;
+  gap: 2px;
+}
+
+.sub-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0.15rem 0.8rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sub-nav a:hover {
+  background: var(--bg);
+  color: var(--accent-deep);
+}
+
+.sub-nav a.is-active {
+  background: var(--accent-dark);
+  color: #fff;
+}
+
+.sub-nav a:focus-visible {
+  outline: 2px solid var(--accent-dark);
+  outline-offset: 2px;
+}
+
+.subbar-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.dot-warning {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--warn);
+  vertical-align: 2px;
+}
+
+/* Folder selection */
+
+.selection {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--tint);
+}
+
+.selection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.selection-summary {
+  margin: 0;
+  font-weight: 650;
+}
+
+.selection-note {
+  margin: 0.4rem 0 0;
+  color: var(--warn);
+}
+
+.selection-list {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  max-height: 190px;
+  overflow-y: auto;
+  list-style: none;
+  font-family: Consolas, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.selection-list li {
+  padding: 0.1rem 0;
+  word-break: break-all;
+}
+
+.button-small {
+  min-height: 34px;
+  padding: 0.2rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* Advanced settings */
+
+.advanced {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.9rem;
+}
+
+.advanced summary {
+  padding: 0.3rem 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.advanced summary:hover {
+  color: var(--accent-deep);
+}
+
+.advanced summary:focus-visible {
+  outline: 2px solid var(--accent-dark);
+  outline-offset: 2px;
+}
+
+.advanced .settings-grid {
+  margin-top: 1.1rem;
+}
+
+/* Flagged results */
+
+.subheading {
+  margin: 1.5rem 0 0.3rem;
+  font-size: 0.95rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badge-ok {
+  background: #e4f4ea;
+  color: var(--ok);
+}
+
+.badge-warning {
+  background: #f8e8ce;
+  color: var(--warn);
+}
+
+.badge-fail {
+  background: #fbeaea;
+  color: var(--fail);
+}
+
+.flagged-list {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.flagged-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+  word-break: break-word;
+}
+
+.flagged-list li:last-child {
+  border-bottom: none;
+}
+
+.code-block {
+  margin: 0.75rem 0;
+  padding: 0.75rem 0.9rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border-strong);
+  background: var(--tint);
+  font-size: 0.82rem;
+}
+
+.code-block code {
+  background: none;
+  padding: 0;
 }
 
 @media (max-width: 600px) {
@@ -495,7 +765,358 @@ a {
     padding: 1.1rem;
   }
 
+  .card-head {
+    margin: -1.1rem -1.1rem 1rem;
+    padding: 0.6rem 1.1rem;
+  }
+
   .counters {
     gap: 1rem;
+  }
+
+  .subbar-note {
+    display: none;
+  }
+}
+
+/* Home page */
+
+/* The whole page is meant to sit inside the viewport, with no scrolling. */
+.page-home {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.page-home main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  padding: 1rem 0;
+}
+
+.page-home .site-footer {
+  margin: 0 0 1.25rem;
+}
+
+.hero {
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  margin: 0.5rem auto 0;
+  max-width: 48ch;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/*
+  Live tiles on a fixed grid of square cells, the way the Start screen laid them
+  out. Everything spans whole cells, so the group always packs into a rectangle
+  with no gaps: two double-wide tiles, the first tool and the build tile, offset
+  against four squares. Eight columns and four rows hold the six exactly, which
+  is why adding a seventh tile means choosing its size here rather than letting
+  it wrap. The cell size is what keeps the group inside the 940px shell.
+*/
+
+/*
+  The cell is square and sized to whichever runs out first, the preferred size
+  or the room available: eight of them plus the gaps have to fit the shell, or
+  the group is cut off at both edges. Breakpoints below set --cell-max and let
+  this work out the rest, rather than each one picking a size that fits.
+*/
+.tile-grid {
+  --cell-max: 98px;
+  --tile-gap: 10px;
+  --cell: min(var(--cell-max), (min(940px, 100vw - 2.5rem) - 7 * var(--tile-gap)) / 8);
+  display: grid;
+  grid-template-columns: repeat(8, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: var(--tile-gap);
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile-cell-md {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.tile-cell-lg {
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.85rem;
+  overflow: hidden;
+  background: var(--accent-dark);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/*
+  Six shades, one per tile, so no two touching tiles share a fill and merge into
+  a single shape. They walk from light to dark and drift across the teal range,
+  green at one end and blue at the other, which separates neighbours by hue as
+  well as by lightness. Every one clears AA against white at these sizes, the
+  lightest by the smallest margin, which is why the captions below are near
+  solid white rather than the usual muted opacity. The darkest is reserved for
+  the build tile: it is the largest and the only one that is not a link, so it
+  can anchor the group.
+*/
+.tile-1 { background: #0f7f75; }  /* 4.87:1 */
+.tile-2 { background: #0f747c; }  /* 5.51:1 */
+.tile-3 { background: #0d7a63; }  /* 5.27:1 */
+.tile-4 { background: #0d6f66; }  /* 6.03:1 */
+.tile-help { background: #0b5f66; }  /* 7.39:1 */
+.tile-build { background: #0a564f; }  /* 8.55:1 */
+
+/* An inset ring rather than a lighter fill, which would cost text contrast. */
+a.tile:hover {
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.55);
+  transform: scale(1.03);
+}
+
+a.tile:active {
+  transform: scale(0.98);
+}
+
+a.tile:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* Mint rather than white, so the icon reads as an accent and not a second label. */
+.tile-icon {
+  color: #99e9d9;
+}
+
+.tile-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.tile-text {
+  display: block;
+  min-width: 0;
+}
+
+.tile-name {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.tile-sub {
+  display: -webkit-box;
+  margin-top: 0.2rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+/*
+  One name per line. Four cells is not wide enough for two columns without the
+  longest name running out of room, and the tile is two cells tall, which is
+  more than enough height for four lines.
+*/
+.tile-status {
+  margin: 0.45rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.tile-status li {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tile-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.4rem;
+  vertical-align: 1px;
+}
+
+.tile-dot.is-ready { background: #7fe3c4; }
+.tile-dot.is-missing { background: #f5c451; }
+
+.tile.is-unavailable {
+  background: #5c564a;
+  cursor: default;
+}
+
+/* Tall windows: grow the group rather than strand it in the middle. */
+@media (min-height: 880px) {
+  .tile-grid {
+    --cell-max: 104px;
+    --tile-gap: 12px;
+  }
+
+  .tile {
+    padding: 1rem;
+  }
+
+  .tile-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tile-name {
+    font-size: 1.05rem;
+  }
+
+  .tile-sub,
+  .tile-status {
+    font-size: 0.82rem;
+  }
+}
+
+/* Shorter windows: shrink the whole grid rather than start scrolling. */
+@media (max-height: 730px) {
+  .hero {
+    margin-bottom: 1.15rem;
+  }
+
+  .tile-grid {
+    --cell-max: 78px;
+    --tile-gap: 9px;
+  }
+
+  .tile-name {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-height: 610px) {
+  .hero {
+    margin-bottom: 0.9rem;
+  }
+
+  .hero h1 {
+    font-size: 1.4rem;
+  }
+
+  .hero p,
+  .tile-sub {
+    display: none;
+  }
+
+  .tile-grid {
+    --cell-max: 64px;
+    --tile-gap: 8px;
+  }
+
+  .tile {
+    padding: 0.6rem;
+  }
+
+  .tile-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tile-name {
+    font-size: 0.82rem;
+  }
+
+  .tile-status {
+    margin-top: 0.25rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 680px) {
+  /*
+    Eight columns here would leave tiles too small to read, so the group folds to
+    four: two tools per row, then the build tile and Help as full width strips.
+    The page scrolls at this size rather than fighting to fit.
+  */
+  .page-home {
+    height: auto;
+    overflow: visible;
+  }
+
+  .page-home main {
+    padding: 2rem 0;
+  }
+
+  .tile-grid {
+    --cell-max: 118px;
+    --tile-gap: 8px;
+    --cell: min(var(--cell-max), (min(940px, 100vw - 2.5rem) - 3 * var(--tile-gap)) / 4);
+    grid-template-columns: repeat(4, var(--cell));
+  }
+
+  /*
+    The lead tool drops back to a square so the four sit two per row, leaving
+    the build tile and Help as the full width strips underneath.
+  */
+  .tile-cell-hero {
+    grid-column: span 2;
+  }
+
+  .tile-cell-build,
+  .tile-cell-help {
+    grid-column: span 4;
+  }
+
+  .tile-cell-help {
+    grid-row: span 1;
+  }
+
+  .tile-sub {
+    -webkit-line-clamp: 2;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tile-grid {
+    --cell-max: 96px;
+    --tile-gap: 6px;
+  }
+
+  .tile {
+    padding: 0.55rem;
+  }
+
+  .tile-name {
+    font-size: 0.78rem;
+  }
+
+  .tile-sub {
+    display: none;
   }
 }

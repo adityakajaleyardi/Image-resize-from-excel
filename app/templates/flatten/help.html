@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Flatten help &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>PDF Flatten</h1>
+  <p>
+    Turns fillable PDFs into fixed ones. Values stay visible, but stop being editable fields.
+  </p>
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Results</h2>
+  </div>
+  <p>
+    You get a ZIP with the same folder structure you picked, plus <code>Flatten_Report.csv</code>.
+  </p>
+  <table class="table">
+    <thead>
+      <tr><th>State</th><th>Meaning</th><th>In ZIP?</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-ok">Flattened</span></td>
+        <td>Verified against the original.</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-warning">Needs review</span></td>
+        <td>Closest attempt kept; open and check. Detail is in the report.</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-fail">Failed</span></td>
+        <td>Corrupt, password protected, or unreadable.</td>
+        <td>No</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Engines</h2>
+    <p class="card-note">Leave on <code>auto</code> unless you are chasing a specific problem.</p>
+  </div>
+  <dl class="definitions">
+    {% for name in engines %}
+    <dt><code>{{ name }}</code></dt>
+    <dd>{{ engine_descriptions[name] }}</dd>
+    {% endfor %}
+  </dl>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Limits</h2>
+  </div>
+  <ul class="bullets">
+    <li>{{ max_files }} files per batch, {{ max_file_mb }} MB per file, {{ max_total_mb }} MB total.</li>
+    <li>Only <code>.pdf</code> files are uploaded.</li>
+    <li>Folder picking needs Chrome or Edge; otherwise pick individual files.</li>
+    <li>Downloads are deleted after 24 hours.</li>
+  </ul>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Common problems</h2>
+  </div>
+  <dl class="definitions">
+    <dt>Everything needs review</dt>
+    <dd>Turn on “Allow rasterising as last resort” under Advanced.</dd>
+    <dt>A file failed</dt>
+    <dd>Usually password protected or damaged. Open it and re-save, then try again.</dd>
+  </dl>
+</section>
+{% endblock %}

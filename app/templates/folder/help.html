@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Images from Folder help &middot; {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-intro">
+  <h1>Images from Folder</h1>
+  <p>
+    Takes a folder of property images, resizes each one to the rule for its document type,
+    renames it to the Yardi convention and files it back into the same folder structure.
+  </p>
+</div>
+
+<section class="card">
+  <div class="card-head">
+    <h2>How the folder must be arranged</h2>
+  </div>
+  <p>
+    Pick the folder that holds your property folders. Inside it, every image must sit exactly
+    two levels down: a property code folder, then a document type folder, then the image.
+  </p>
+  <pre class="code-block"><code>Images to process/
+  p1812741/
+    UnitImage/
+      studio-plan.jpg
+    PhotoGallery/
+      pool.jpg
+  p1900233/
+    PropertyLogo/
+      logo.png</code></pre>
+  <p class="muted">
+    Document type folder names are matched ignoring case and spaces, so
+    <code>UnitImage</code>, <code>unit image</code> and <code>Unit Image</code> are the same thing.
+    Anything filed at the wrong depth is listed back to you and left out of the run.
+  </p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Unit images</h2>
+  </div>
+  <p>
+    One floor plan is usually shared by many apartments, so a unit image is cross referenced
+    against three lookup files and <strong>one output is produced per apartment</strong>, each
+    carrying that apartment's HMY id. Expect far more files out than in: a batch of 48 images
+    can produce well over a thousand.
+  </p>
+  <ul class="bullets">
+    <li><code>UnitMapping.csv</code></li>
+    <li><code>CompanyUnitSummery.csv</code></li>
+    <li><code>PropertyList-Property.csv</code></li>
+  </ul>
+  <p class="muted">
+    These hold live property data, so they are uploaded with each run rather than kept on the
+    server. If you are not processing unit images you can leave all three empty.
+  </p>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>What each outcome means</h2>
+  </div>
+  <table class="table">
+    <thead>
+      <tr><th>State</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-ok">Processed</span></td>
+        <td>The image was resized, renamed and written to the download.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-warning">No matching units</span></td>
+        <td>
+          A unit image that no apartment claimed, or whose apartments have no usable HMY.
+          This is not an error, but nothing is produced for it.
+        </td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-fail">Failed</span></td>
+        <td>The file could not be read. The rest of the batch carries on regardless.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Settings</h2>
+  </div>
+  <dl class="definitions">
+    {% for mode_id, mode_label in modes.items() %}
+    <dt>{{ mode_label }}</dt>
+    <dd>
+      {% if mode_id == 1 %}
+      Renames to the Yardi convention and leaves the image itself untouched.
+      {% else %}
+      Renames and resizes to the rule for the document type. Images are never scaled up.
+      {% endif %}
+    </dd>
+    {% endfor %}
+    <dt>Max file size</dt>
+    <dd>{{ descriptions.max_file_size_mb }}</dd>
+  </dl>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Worth knowing</h2>
+  </div>
+  <ul class="bullets">
+    <li>Everything comes out as <code>.jpg</code>, except favicons, which become 64x64 <code>.ico</code>.</li>
+    <li>Transparent PNGs are flattened onto an opaque background.</li>
+    <li>
+      When two family linked properties share a source filename the same target is produced twice.
+      The later one wins, which is what the original tool did.
+    </li>
+    <li>The download always includes <code>Process_Log.csv</code>, the record to reconcile against.</li>
+    <li>Folder picking needs Chrome or Edge.</li>
+    <li>Downloads are deleted after 24 hours.</li>
+  </ul>
+</section>
+{% endblock %}
