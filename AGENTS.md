@@ -9,12 +9,12 @@ A small internal web app holding the batch jobs the team runs by hand. One perso
 their machine so colleagues can use it from a browser, because they cannot run an unsigned
 executable on a managed laptop. Four tools live in it today:
 
-- **Images from CSV** — reads a CSV export of property image URLs, downloads each image, resizes
+- **Images from Source Property** — reads a CSV export of property image URLs, downloads each image, resizes
  it, renames it to convention and files it into folders. Also has a command line entry point.
-- **PDF Flatten** — bakes form fields and annotations into a batch of PDFs.
-- **Images from Folder** — the same naming convention, applied to a folder of images already on
+- **Flatten PDF** — bakes form fields and annotations into a batch of PDFs.
+- **Images by Client** — the same naming convention, applied to a folder of images already on
  disk rather than a list of URLs.
-- **Emails to HTML and Images** — decodes the compressed email bodies in a database export into
+- **Email to Images/HTML** — decodes the compressed email bodies in a database export into
  readable HTML, and screenshots each one.
 
 The last three each belong to a separate package installed with pip; see the rules below.
@@ -63,7 +63,7 @@ Two things a tool may ask for, neither of which names it inside `jobs.py`:
 
 - `submit(job, runner, lane="<name>")` runs it on a worker of its own instead of the shared pool
  of two. For a tool whose runs last hours, so it queues against itself rather than starving the
- quick ones. Emails to HTML and Images is the only one that does this.
+ quick ones. Email to Images/HTML is the only one that does this.
 - `create(tool, retention_hours=N)` deletes the workspace sooner than the server-wide window. The
  value is also written into the workspace, so a restart does not lose it.
 
@@ -79,7 +79,8 @@ to change.
 
 **Do not reimplement what the tool packages do.** Three of the four tools are thin wrappers over
 libraries that live in their own repositories and are installed with pip:
-[Flatten](https://github.com/adityakajaleyardi/Flatten), `image-from-folder` and
+[Flatten](https://github.com/adityakajaleyardi/Flatten),
+[image-from-folder](https://github.com/adityakajaleyardi/image-from-folder) and
 [greystar-email-converter](https://github.com/adityakajaleyardi/greystar-email-converter). Do not
 copy those modules in, do not merge the repositories, and do not work around them by shelling out
 to their command line entry points. Call the Python API.
@@ -201,7 +202,7 @@ wherever `WKHTMLTOIMAGE_PATH` points.
   and PNGs are never lossily compressed.
 - `flatten_bytes` returns a tuple of `(bytes, FlattenResult)`, not just bytes. `result.degraded`
   is what "needs review" means, and it still returns usable output in that case.
-- Every tool but Emails to HTML and Images shares one worker pool of two. Flattening is CPU
+- Every tool but Email to Images/HTML shares one worker pool of two. Flattening is CPU
   bound and image processing is network bound, so they behave differently under load.
 - The email converter's own `convert_file` reports progress only every hundredth row through the
   logger and cannot be interrupted. `app/tools/emails/runner.py` therefore drives `read_table` and

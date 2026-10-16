@@ -6,10 +6,10 @@ some files, works through them in the background, and hands back a ZIP.
 
 | Tool | What it does |
 |---|---|
-| **Images from CSV** | Downloads property images listed in a CSV export, resizes them, renames them to convention and files them into folders |
-| **PDF Flatten** | Bakes form fields and annotations permanently into a batch of PDFs |
-| **Images from Folder** | The same naming convention, applied to a folder of images you already have |
-| **Emails to HTML and Images** | Decodes the compressed email bodies in a database export into readable HTML, and screenshots each one |
+| **Images from Source Property** | Downloads property images listed in a CSV export, resizes them, renames them to convention and files them into folders |
+| **Flatten PDF** | Bakes form fields and annotations permanently into a batch of PDFs |
+| **Images by Client** | The same naming convention, applied to a folder of images you already have |
+| **Email to Images/HTML** | Decodes the compressed email bodies in a database export into readable HTML, and screenshots each one |
 
 There is also a command line entry point for the image tool.
 
@@ -19,10 +19,10 @@ There is also a command line entry point for the image tool.
 ## Contents
 
 - [Hosting the app](#hosting-the-app)
-- [The Images from CSV tool](#the-images-from-csv-tool)
-- [The PDF Flatten tool](#the-pdf-flatten-tool)
-- [The Images from Folder tool](#the-images-from-folder-tool)
-- [The Emails to HTML and Images tool](#the-emails-to-html-and-images-tool)
+- [The Images from Source Property tool](#the-images-from-source-property-tool)
+- [The Flatten PDF tool](#the-flatten-pdf-tool)
+- [The Images by Client tool](#the-images-by-client-tool)
+- [The Email to Images/HTML tool](#the-email-to-imageshtml-tool)
 - [Command line use](#command-line-use)
 - [Project layout](#project-layout)
 - [Development](#development)
@@ -39,9 +39,9 @@ python -m venv .venv
 pip install -r requirements.txt
 
 # Each of these adds one tool. Skip any you do not need; the tab says so.
-pip install -r requirements-flatten.txt   # PDF Flatten
-pip install -r requirements-folder.txt    # Images from Folder
-pip install -r requirements-emails.txt    # Emails to HTML and Images
+pip install -r requirements-flatten.txt   # Flatten PDF
+pip install -r requirements-folder.txt    # Images by Client
+pip install -r requirements-emails.txt    # Email to Images/HTML
 
 .\scripts\start_server.ps1
 ```
@@ -73,7 +73,7 @@ pip install -e ..\Flatten                        # from a local checkout, for de
 
 ### wkhtmltoimage, for email screenshots
 
-Emails to HTML and Images takes its screenshots by shelling out to `wkhtmltoimage`, which is
+Email to Images/HTML takes its screenshots by shelling out to `wkhtmltoimage`, which is
 an ordinary program rather than a Python package, so no requirements file can install it.
 
 - **Windows:** the installer at <https://wkhtmltopdf.org/downloads.html>
@@ -94,11 +94,32 @@ New-NetFirewallRule -DisplayName 'Internal Tools' -Direction Inbound -Protocol T
 
 The host machine must stay on and the window must stay open for the app to be reachable.
 
+### Serve it at the root of its address, not under a path
+
+The app must answer at the root of whatever address it is given, so either of these is fine:
+
+```text
+http://server-name:8000/
+http://tools.company.com/
+```
+
+Putting it under a path on an existing site is **not** supported without code changes:
+
+```text
+https://intranet.company.com/imagetools/     <-- do not
+```
+
+Links in the pages and the job polling calls are written from the root, so behind a prefix like
+that they would resolve outside the app: the page and its stylesheet would load, which makes it
+look like it worked, but navigation would leave the app and no run would ever report progress or
+offer a download. If a reverse proxy is wanted, give the app its own hostname and pass requests
+through untouched, rather than mounting it under a prefix.
+
 ### Notes on hosting
 
 - There is no login. Anyone who can reach the address can use it, which is the intent for an
   internal tool on a trusted network. Do not expose the port to the internet. Bear this in mind
-  for Emails to HTML and Images in particular, whose output contains resident details.
+  for Email to Images/HTML in particular, whose output contains resident details.
 - Image downloads are restricted to `rentcafe.com`, so the server cannot be pointed at other
   machines on your network. See [Downloads](#downloads).
 - Two runs execute at a time; further runs queue. Email conversions are the exception: they get a
@@ -113,7 +134,7 @@ older `IMAGE_PROCESSOR_` spellings of the first three are still honoured.
 
 ---
 
-# The Images from CSV tool
+# The Images from Source Property tool
 
 Downloads the images listed in a CSV export, resizes them, renames them to convention, and files
 them into folders.
@@ -228,7 +249,7 @@ set `IMAGE_PROCESSOR_EXTRA_HOSTS` to a comma separated list of domains before st
 
 ---
 
-# The PDF Flatten tool
+# The Flatten PDF tool
 
 Turns fillable PDFs into fixed ones. The values stay visible exactly where they were, but they
 stop being editable fields, so a form filler cannot change them and Acrobat's *Prepare Form* tool
@@ -285,7 +306,7 @@ working on a server where it is not installed.
 
 ---
 
-# The Images from Folder tool
+# The Images by Client tool
 
 The same naming convention as the CSV tool, applied to images you already have on disk rather than
 a list of URLs.
@@ -311,7 +332,7 @@ Up to 2000 files per batch, 50 MB per file and 500 MB in total. Saved defaults l
 
 ---
 
-# The Emails to HTML and Images tool
+# The Email to Images/HTML tool
 
 The source system stores each email body compressed and Base64 encoded, so it is unreadable in any
 export pulled from the database. This turns each one back into the HTML page it was, and takes a

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Images from CSV &middot; {{ app_name }}{% endblock %}
+{% block title %}Images from Source Property &middot; {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="page-intro">
-  <h1>Images from CSV</h1>
+  <h1>Images from Source Property</h1>
   <p>
     Upload a CSV export, resize and rename, download a ZIP.
     <a href="/images/help">Help</a>
@@ -32,7 +32,7 @@
       <div class="file-field">
         <label for="property-map">Property mapping <span class="optional">optional</span></label>
         <p class="hint">
-          Maps property codes to ids for older p-code URLs.
+          Helps find images whose links use an older property code.
           <a href="/api/images/templates/property-map">Template</a>
         </p>
         <input type="file" id="property-map" name="property_map" accept=".csv">

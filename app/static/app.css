@@ -75,6 +75,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
+  /* Two words broken over two lines reads as two things, not one name. */
+  white-space: nowrap;
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -106,9 +108,30 @@ body {
   align-items: center;
   min-height: 34px;
   padding: 0.25rem 0.8rem;
+  /* A tool name split across two lines stops looking like one tab. */
+  white-space: nowrap;
   color: var(--text-muted);
   text-decoration: none;
   font-weight: 550;
+}
+
+/*
+  The tool names are long enough that five tabs plus the brand run out of room
+  before the tiles do. Tighten the tabs rather than let them wrap, which reads
+  as two rows of unrelated links.
+*/
+@media (max-width: 1080px) {
+  .site-nav a {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 880px) {
+  .site-nav a {
+    padding: 0.25rem 0.35rem;
+    font-size: 0.85rem;
+  }
 }
 
 .site-nav a:hover {

@@ -1,4 +1,4 @@
-# The PDF Flatten tool.
+# The Flatten PDF tool.
 #
 # Kept out of requirements.txt on purpose: it is fetched from GitHub, so a
 # network that cannot reach github.com would otherwise break the install of

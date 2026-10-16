@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Emails to HTML and Images help &middot; {{ app_name }}{% endblock %}
+{% block title %}Email to Images/HTML help &middot; {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="page-intro">
-  <h1>Emails to HTML and Images</h1>
+  <h1>Email to Images/HTML</h1>
   <p>
-    The source system stores an email body compressed and encoded, so it is unreadable in
-    any export you pull from the database. This turns each one back into the HTML page it
-    was, and optionally takes a screenshot of it.
+    Email bodies come out of the database as a block of unreadable text. This turns each one
+    back into the email as it looked, and can also save a picture of it.
   </p>
 </div>
 
@@ -88,9 +87,8 @@
     <dd>
       {{ descriptions.render_images }}
       {% if not can_render %}
-      <strong>Not available on this server:</strong> wkhtmltoimage is not installed, so runs
-      produce HTML only. It is an ordinary program rather than a Python package, so it has to
-      be installed on the machine hosting this app before screenshots can work.
+      <strong>Not available on this server:</strong> runs will produce the HTML files only.
+      Ask whoever set the app up if you need the screenshots switched on.
       {% endif %}
     </dd>
   </dl>
@@ -111,11 +109,11 @@
       emails rather than look at them.
     </li>
     <li>
-      Long runs queue against each other rather than against the other tools, so starting a
-      big export will not hold up someone flattening a PDF.
+      A big export here will not hold up anyone using the other tools, so you can leave it
+      running.
     </li>
     <li>
-      Row numbers in the log are spreadsheet line numbers, so the first email is row 2.
+      Row numbers in the log match the spreadsheet, so the first email is row 2.
     </li>
     <li>
       <strong>Decoded emails contain resident names, addresses and lease details.</strong>

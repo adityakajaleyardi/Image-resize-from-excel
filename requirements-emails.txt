@@ -1,4 +1,4 @@
-# The Emails to HTML and Images tool.
+# The Email to Images/HTML tool.
 #
 # Kept out of requirements.txt on purpose: it is fetched from GitHub, so a
 # network that cannot reach github.com would otherwise break the install of

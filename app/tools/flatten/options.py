@@ -17,24 +17,25 @@ from typing import Any
 ENGINES = ("auto", "bake", "stamp", "raster")
 
 ENGINE_DESCRIPTIONS = {
-    "auto": "Tries bake, then stamp (and raster if allowed). Keeps the first result that verifies.",
-    "bake": "PyMuPDF native flatten. Fast; works for most files.",
-    "stamp": "Draws each annotation into the page content. Handles files bake cannot.",
-    "raster": "Renders every page to an image. Always looks right, but text is no longer searchable.",
+    "auto": "Tries each method in turn and keeps the first result that checks out. Leave it here.",
+    "bake": "The standard method. Fast, and right for most files.",
+    "stamp": "Draws the values onto the page. Handles files the standard method cannot.",
+    "raster": "Turns each page into a picture. Always looks right, but the text can no longer "
+    "be searched or copied.",
 }
 
 FIELD_DESCRIPTIONS = {
-    "engine": "Which flattening technique to use.",
-    "verify": "Re-render every page and compare it against the original, so a file that "
-    "lost content is reported instead of quietly handed back.",
-    "verify_dpi": "Resolution used for that comparison. Higher is stricter and slower.",
-    "tolerance": "How much of the original ink a page may lose before the result is "
-    "treated as suspect. 0.005 is half a percent.",
-    "allow_raster": "Let the automatic chain fall back to rasterising when nothing else "
-    "verifies. The output stops being searchable, so it is off by default.",
-    "raster_dpi": "Resolution used when a page is rasterised.",
-    "flatten_annots": "Also flatten comments, stamps and other annotations, not just form "
-    "fields. Links stay clickable either way.",
+    "engine": "Which method to use. Leave on auto unless you are chasing a specific problem.",
+    "verify": "Check every page against the original afterwards, so a file that lost something "
+    "is flagged for review instead of quietly handed back.",
+    "verify_dpi": "How closely that check looks. Higher is stricter and slower.",
+    "tolerance": "How much a page may differ from the original before it is flagged for review. "
+    "0.005 is half a percent.",
+    "allow_raster": "As a last resort, let a stubborn file be turned into pictures. The text "
+    "stops being searchable, so this is off by default.",
+    "raster_dpi": "Picture quality used if that happens.",
+    "flatten_annots": "Also fix comments and stamps in place, not just form fields. Links stay "
+    "clickable either way.",
 }
 
 _LIMITS = {

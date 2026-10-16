@@ -43,9 +43,9 @@ if (-not $SkipDependencyCheck) {
     # Optional tools. The app runs without any of them and says so on the tab, so
     # a missing or unreachable install must never stop the server.
     $optional = @(
-        @{ Module = 'flatten_pdf';              Name = 'PDF Flatten';                Requirements = 'requirements-flatten.txt' },
-        @{ Module = 'image_from_folder';        Name = 'Images from Folder';         Requirements = 'requirements-folder.txt' },
-        @{ Module = 'greystar_email_converter'; Name = 'Emails to HTML and Images'; Requirements = 'requirements-emails.txt' }
+        @{ Module = 'flatten_pdf';              Name = 'Flatten PDF';           Requirements = 'requirements-flatten.txt' },
+        @{ Module = 'image_from_folder';        Name = 'Images by Client';      Requirements = 'requirements-folder.txt' },
+        @{ Module = 'greystar_email_converter'; Name = 'Email to Images/HTML';  Requirements = 'requirements-emails.txt' }
     )
 
     foreach ($tool in $optional) {
@@ -56,7 +56,7 @@ if (-not $SkipDependencyCheck) {
         }
     }
 
-    # Emails to HTML and Images screenshots each email by shelling out to wkhtmltoimage,
+    # Email to Images/HTML screenshots each email by shelling out to wkhtmltoimage,
     # which is an ordinary program and cannot be pip installed. Checked here so a
     # missing install is found now rather than by the first person to run a job.
     # Decoding to HTML works without it, so this is a warning, not a failure.

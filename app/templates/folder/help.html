@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Images from Folder help &middot; {{ app_name }}{% endblock %}
+{% block title %}Images by Client help &middot; {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="page-intro">
-  <h1>Images from Folder</h1>
+  <h1>Images by Client</h1>
   <p>
-    Takes a folder of property images, resizes each one to the rule for its document type,
-    renames it to the Yardi convention and files it back into the same folder structure.
+    Takes a folder of images the client sent you, resizes each one to the rule for its
+    document type, renames it to the Yardi convention and files it back into the same
+    folder structure.
   </p>
 </div>
 
@@ -110,10 +111,10 @@
   </div>
   <ul class="bullets">
     <li>Everything comes out as <code>.jpg</code>, except favicons, which become 64x64 <code>.ico</code>.</li>
-    <li>Transparent PNGs are flattened onto an opaque background.</li>
+    <li>Images with a transparent background are given a solid one.</li>
     <li>
-      When two family linked properties share a source filename the same target is produced twice.
-      The later one wins, which is what the original tool did.
+      If two linked properties use the same image filename, only one copy is kept. This matches
+      what the old tool did.
     </li>
     <li>The download always includes <code>Process_Log.csv</code>, the record to reconcile against.</li>
     <li>Folder picking needs Chrome or Edge.</li>

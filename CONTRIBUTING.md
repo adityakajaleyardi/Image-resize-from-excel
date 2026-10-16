@@ -10,7 +10,7 @@ python -m venv .venv
 pip install -r requirements.txt
 pip install pytest httpx ruff
 
-# The PDF Flatten tool, from a local checkout of the Flatten repo next door.
+# The Flatten PDF tool, from a local checkout of the Flatten repo next door.
 # Use -r requirements-flatten.txt to take it from GitHub instead.
 pip install -e ..\Flatten
 ```

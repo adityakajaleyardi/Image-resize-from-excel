@@ -21,7 +21,7 @@
     {% for tool in tools %}
     <dt>
       <a href="{{ tool.path }}">{{ tool.label }}</a>
-      {% if not tool.available %}<span class="badge badge-warning">Not installed</span>{% endif %}
+      {% if not tool.available %}<span class="badge badge-warning">Not available</span>{% endif %}
     </dt>
     <dd>
       {{ tool.summary }}
@@ -47,9 +47,9 @@
     </li>
     <li>A run can be cancelled at any point. Whatever finished before that is still downloadable.</li>
     <li>
-      Runs are deleted from the server after {{ retention_hours }} hours, so download what you need
-      on the day. Emails to HTML and Images clears up sooner than that, because what it
-      produces is personal data; its own help page says how long.
+      Runs are deleted after {{ retention_hours }} hours, so download what you need on the day.
+      Email to Images/HTML clears up sooner, because what it produces contains resident
+      details; its own help page says how long.
     </li>
   </ul>
 </section>
@@ -63,8 +63,8 @@
     <li>Each tool's help page lists the problems that come up most often for that tool.</li>
     <li>Folder picking needs Chrome or Edge. Other browsers can only take individual files.</li>
     <li>
-      If a tool says it is not installed on this server, the machine hosting the app is missing a
-      library. Whoever hosts it can install it; the version below says which are present.
+      If a tool says it is not available, it has not been switched on for this server yet.
+      Ask whoever set the app up; nothing you can do from this side will fix it.
     </li>
   </ul>
 </section>
@@ -87,9 +87,9 @@
         <td>{{ tool.label }}</td>
         <td>
           {% if tool.available %}
-          <span class="badge badge-ok">Installed</span>
+          <span class="badge badge-ok">Ready to use</span>
           {% else %}
-          <span class="badge badge-warning">Missing {{ tool.missing_requirement }}</span>
+          <span class="badge badge-warning">Not available</span>
           {% endif %}
         </td>
       </tr>

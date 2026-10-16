@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.registry import TOOLS
+from app.registry import TOOLS, get_tool
 from tests.conftest import SOURCE_HEADER
 
 VALID_SETTINGS = {
@@ -58,11 +58,11 @@ class TestPages:
     def test_the_run_page_renders(self, client):
         response = client.get("/images")
         assert response.status_code == 200
-        assert "Images from CSV" in response.text
+        assert get_tool("images").label in response.text
 
     def test_every_tool_appears_in_the_navigation(self, client):
         response = client.get("/images")
-        assert "PDF Flatten" in response.text
+        assert get_tool("flatten").label in response.text
         assert 'href="/flatten"' in response.text
 
     def test_the_home_page_leaves_the_navigation_to_the_tiles(self, client):

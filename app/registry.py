@@ -43,7 +43,7 @@ class Tool:
 TOOLS: tuple[Tool, ...] = (
     Tool(
         id="images",
-        label="Images from CSV",
+        label="Images from Source Property",
         path="/images",
         help_path="/images/help",
         summary="Download, resize, rename and file property images listed in a CSV export.",
@@ -51,7 +51,7 @@ TOOLS: tuple[Tool, ...] = (
     ),
     Tool(
         id="flatten",
-        label="PDF Flatten",
+        label="Flatten PDF",
         path="/flatten",
         help_path="/flatten/help",
         summary="Permanently bake form fields and annotations into a batch of PDFs.",
@@ -61,17 +61,17 @@ TOOLS: tuple[Tool, ...] = (
     ),
     Tool(
         id="folder",
-        label="Images from Folder",
+        label="Images by Client",
         path="/folder",
         help_path="/folder/help",
         summary="Resize, rename and file a folder of property images to the Yardi convention.",
-        tagline="From a local folder",
+        tagline="From a client folder",
         requires=("image_from_folder",),
         install_hint=("pip install -r requirements-folder.txt"),
     ),
     Tool(
         id="emails",
-        label="Emails to HTML and Images",
+        label="Email to Images/HTML",
         path="/emails",
         help_path="/emails/help",
         summary="Decode the compressed email bodies in an export into readable HTML and screenshots.",

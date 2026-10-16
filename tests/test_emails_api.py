@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 pytest.importorskip("greystar_email_converter")
 
 from app.main import app  # noqa: E402
+from app.registry import get_tool  # noqa: E402
 from tests.test_emails_runner import CSV_COLUMNS, LEGACY_COLUMNS, body  # noqa: E402
 
 OPTIONS = {"column_layout": "auto", "render_images": "0"}
@@ -82,7 +83,7 @@ class TestPages:
     def test_the_run_page_renders(self, client):
         response = client.get("/emails")
         assert response.status_code == 200
-        assert "Emails to HTML and Images" in response.text
+        assert get_tool("emails").label in response.text
         assert "Detect from the file" in response.text
 
     def test_the_run_page_offers_both_layouts(self, client):
@@ -101,7 +102,7 @@ class TestPages:
 
     def test_the_home_page_offers_it_as_a_tile(self, client):
         response = client.get("/")
-        assert "Emails to HTML and Images" in response.text
+        assert get_tool("emails").label in response.text
         assert 'href="/emails"' in response.text
 
     def test_the_short_retention_is_stated_on_the_page(self, client):

@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 pytest.importorskip("flatten_pdf")
 
 from app.main import app  # noqa: E402
+from app.registry import get_tool  # noqa: E402
 from tests.test_flatten_runner import form_pdf  # noqa: E402
 
 OPTIONS = {
@@ -57,7 +58,7 @@ class TestPages:
     def test_the_run_page_renders(self, client):
         response = client.get("/flatten")
         assert response.status_code == 200
-        assert "Flatten PDFs" in response.text
+        assert get_tool("flatten").label in response.text
         assert "webkitdirectory" in response.text
         assert "Advanced" in response.text
 

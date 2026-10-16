@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.0] - 2026-08-31
+
+Names the production team chose, and a pass over the help pages for the people who actually
+use them.
+
+### Changed
+- **The install is ready to hand to whoever hosts this.** `requirements-folder.txt` pointed at a
+  path on one laptop, so Images by Client could not be installed by anyone else; the
+  `image-from-folder` library now has a repository and the file points at it, like the other two.
+  The `<org>` placeholder is gone from `pyproject.toml`.
+- **Core requirements are pinned.** A fresh install was picking up pandas 3, two majors ahead of
+  what the tests run against, and every CSV and Excel file this app reads goes through pandas.
+  `starlette` and `numpy` are pinned too: nothing here imports them, but they sit directly beneath
+  FastAPI and pandas, so a newer one changes behaviour without any of the stated pins moving.
+  `pyproject.toml` keeps floors and gains a `<3` ceiling on pandas, since a library should say what
+  it can work with and the file a server installs from should say what was tested.
+- The tools are now called **Images from Source Property**, **Images by Client**, **Flatten PDF**
+  and **Email to Images/HTML**. Addresses are untouched, so existing links and bookmarks still
+  work.
+- Help pages rewritten for readers with no technical background. Gone: the library name behind
+  each flatten method, the reason the download allowlist exists, `wkhtmltoimage` by name, and the
+  Python module named in the "not installed" badge. Kept: every column name, document type and
+  size the job actually depends on.
+- A tool that is switched off now reads "Not available" and points at whoever set the app up,
+  rather than naming the missing package.
+- Tests assert against the labels in `app/registry.py` instead of copies of them, so renaming a
+  tool no longer breaks the suite.
+
 ## [7.0.0] - 2026-08-13
 
 Two more tools, and a home page to choose between them. The job layer took the two changes

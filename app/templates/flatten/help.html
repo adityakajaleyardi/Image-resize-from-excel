@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}PDF Flatten help &middot; {{ app_name }}{% endblock %}
+{% block title %}Flatten PDF help &middot; {{ app_name }}{% endblock %}
 
 {% block content %}
 <div class="page-intro">
-  <h1>PDF Flatten</h1>
+  <h1>Flatten PDF</h1>
   <p>
-    Turns fillable PDFs into fixed ones. Values stay visible, but stop being editable fields.
+    Turns fillable PDFs into fixed ones. Everything filled in stays visible, but nobody can
+    change it afterwards.
   </p>
 </div>
 
@@ -24,17 +25,17 @@
     <tbody>
       <tr>
         <td><span class="badge badge-ok">Flattened</span></td>
-        <td>Verified against the original.</td>
+        <td>Done, and checked against the original.</td>
         <td>Yes</td>
       </tr>
       <tr>
         <td><span class="badge badge-warning">Needs review</span></td>
-        <td>Closest attempt kept; open and check. Detail is in the report.</td>
+        <td>Best attempt kept, but open it and check it looks right. The report says why.</td>
         <td>Yes</td>
       </tr>
       <tr>
         <td><span class="badge badge-fail">Failed</span></td>
-        <td>Corrupt, password protected, or unreadable.</td>
+        <td>The file is damaged, password protected, or could not be opened.</td>
         <td>No</td>
       </tr>
     </tbody>
@@ -43,8 +44,8 @@
 
 <section class="card">
   <div class="card-head">
-    <h2>Engines</h2>
-    <p class="card-note">Leave on <code>auto</code> unless you are chasing a specific problem.</p>
+    <h2>Methods</h2>
+    <p class="card-note">Leave on <code>auto</code>. The rest are only for a file that will not behave.</p>
   </div>
   <dl class="definitions">
     {% for name in engines %}
