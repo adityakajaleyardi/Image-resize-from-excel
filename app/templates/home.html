@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% set icons = {
+  "images": '<path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-13Z"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/>',
+  "flatten": '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/><path d="M14 3v5h5"/><path d="M9 15h6"/>',
+  "folder": '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><circle cx="9.5" cy="13" r="1.5"/><path d="m6 18 4-3.5 3 2.5 2.5-2L20 18"/>',
+  "emails": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/>',
+  "help": '<circle cx="12" cy="12" r="9"/><path d="M9.4 9.3a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 4"/><path d="M12 17.2h.01"/>',
+  "build": '<path d="M12 2.8 20 7v10l-8 4.2L4 17V7l8-4.2Z"/><path d="m4 7 8 4.2L20 7"/><path d="M12 11.2V21"/>'
+} %}
+
+{% block body_class %}page-home{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Choose a tool</h1>
+  <p>The batch jobs the team runs by hand, in one place.</p>
+</section>
+
+<ul class="tile-grid">
+  {% for t in tools %}
+  {# The first tool leads the group on a double-wide tile. #}
+  <li class="tile-cell {{ 'tile-cell-lg tile-cell-hero' if loop.first else 'tile-cell-md' }}">
+    {% if t.available %}
+    {# Four shades cycled, so adding a tool never leaves one unstyled. #}
+    <a class="tile tile-{{ loop.index0 % 4 + 1 }}" href="{{ t.path }}">
+    {% else %}
+    <div class="tile is-unavailable">
+    {% endif %}
+
+      <span class="tile-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round">{{ icons.get(t.id, '')|safe }}</svg>
+      </span>
+      <span class="tile-text">
+        <span class="tile-name">{{ t.label }}</span>
+        <span class="tile-sub">
+          {% if t.available %}{{ t.tagline or t.summary }}{% else %}Not installed on this server{% endif %}
+        </span>
+      </span>
+
+    {% if t.available %}</a>{% else %}</div>{% endif %}
+  </li>
+  {% endfor %}
+
+  <li class="tile-cell tile-cell-lg tile-cell-build">
+    {# Not a link: this one only reports what the server is running. #}
+    <div class="tile tile-build">
+      <span class="tile-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round">{{ icons.build|safe }}</svg>
+      </span>
+      <span class="tile-text">
+        <span class="tile-name">Version {{ version }}</span>
+        <ul class="tile-status">
+          {% for t in tools %}
+          <li>
+            <span class="tile-dot {{ 'is-ready' if t.available else 'is-missing' }}" aria-hidden="true"></span>
+            {{ t.label }} &mdash; {{ 'ready' if t.available else 'not installed' }}
+          </li>
+          {% endfor %}
+        </ul>
+      </span>
+    </div>
+  </li>
+
+  <li class="tile-cell tile-cell-md tile-cell-help">
+    <a class="tile tile-help" href="/help">
+      <span class="tile-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round">{{ icons.help|safe }}</svg>
+      </span>
+      <span class="tile-text">
+        <span class="tile-name">Help</span>
+        <span class="tile-sub">How the suite works</span>
+      </span>
+    </a>
+  </li>
+</ul>
+{% endblock %}

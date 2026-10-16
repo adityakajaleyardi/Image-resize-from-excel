@@ -1,0 +1,26 @@
+{#
+  The progress card, shared by every tool.
+
+  The including template sets `counters` to a list of (event level, label) pairs.
+  job-runner.js finds each counter by its data-count attribute and tallies events
+  of that level into it.
+#}
+<section class="card" id="progress-card" aria-labelledby="progress-title" hidden>
+  <div class="card-head">
+    <h2 id="progress-title">Progress</h2>
+    <p class="card-note" id="progress-state" role="status">Starting...</p>
+  </div>
+
+  <div class="progress-track" role="progressbar" aria-labelledby="progress-title"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-bar">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <ul class="counters">
+    {% for level, label in counters %}
+    <li><span class="counter-value" data-count="{{ level }}">0</span> {{ label }}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="log" id="log" aria-live="polite" aria-label="Run log"></div>
+</section>

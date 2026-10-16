@@ -12,8 +12,8 @@ import argparse
 import sys
 from pathlib import Path
 
+from app.events import LEVEL_FAIL, LEVEL_OK, LEVEL_SKIP, LEVEL_WARNING, Event
 from app.processing import ProcessingConfig, ProcessingError, run
-from app.processing.engine import LEVEL_FAIL, LEVEL_OK, LEVEL_SKIP, LEVEL_WARNING, Event
 
 _LEVEL_LABELS = {
     LEVEL_OK: " OK ",

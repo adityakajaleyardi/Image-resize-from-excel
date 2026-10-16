@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "image-processor"
-version = "5.0.0"
-description = "Web app that downloads, resizes, renames and files property images listed in a CSV export"
+version = "7.1.0"
+description = "Internal web app for batch jobs: property image processing, bulk PDF flattening and email export conversion"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -20,20 +20,33 @@ classifiers = [
     "Topic :: Multimedia :: Graphics :: Graphics Conversion",
     "Topic :: Utilities",
 ]
-keywords = ["image", "batch", "resize", "rename", "csv", "fastapi"]
+keywords = ["image", "batch", "resize", "rename", "csv", "pdf", "flatten", "fastapi"]
 
+# Floors here, exact pins in requirements.txt. A library states what it can work
+# with; the file a server installs from states what was actually tested.
 dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
     "jinja2>=3.1.0",
     "python-multipart>=0.0.9",
-    "pandas>=1.3.0",
+    "pandas>=1.3.0,<3",
     "openpyxl>=3.1.0",
     "Pillow>=9.0.0",
     "requests>=2.26.0",
 ]
 
 [project.optional-dependencies]
+# The PDF flatten tool. Installed separately so a network that cannot reach
+# github.com does not break the install of everything else.
+flatten = ["flatten-pdf @ git+https://github.com/adityakajaleyardi/Flatten.git"]
+folder = [
+    "image-from-folder @ git+https://github.com/adityakajaleyardi/image-from-folder.git",
+]
+# Screenshots additionally need the wkhtmltoimage program, which pip cannot
+# install. See requirements-emails.txt.
+emails = [
+    "greystar-email-converter @ git+https://github.com/adityakajaleyardi/greystar-email-converter.git",
+]
 dev = [
     "pytest>=7.0",
     "httpx>=0.24",
@@ -44,10 +57,18 @@ dev = [
 image-processor = "cli:main"
 
 [tool.setuptools]
-packages = ["app", "app.processing"]
+packages = [
+    "app",
+    "app.processing",
+    "app.tools",
+    "app.tools.images",
+    "app.tools.flatten",
+    "app.tools.folder",
+    "app.tools.emails",
+]
 
 [tool.setuptools.package-data]
-app = ["templates/*.html", "static/*"]
+app = ["templates/*.html", "templates/*/*.html", "static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

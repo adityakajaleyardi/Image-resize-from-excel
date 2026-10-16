@@ -1,0 +1,51 @@
+---
+description: How the PDF flatten tool depends on the separate Flatten package
+globs: app/tools/flatten/**/*.py
+alwaysApply: false
+---
+
+# The flatten tool is a caller, not an implementation
+
+Flattening belongs to the separate [Flatten](https://github.com/adityakajaleyardi/Flatten)
+repository, installed with pip. This package moves bytes between the browser and that library and
+does nothing else to the PDFs.
+
+- Do not copy `flatten_pdf.py` into this repo, merge the repositories, or shell out to the CLI.
+- The only entry point used is `flatten_bytes(data, options) -> tuple[bytes, FlattenResult]`.
+
+## Import it lazily
+
+A server without the library must still start and serve the other tools, so `flatten_pdf` is
+imported inside `runner._load_library` and inside `FlattenSettings.to_flatten_options`, never at
+module level.
+
+```python
+# Wrong: breaks the whole app when the library is absent
+from flatten_pdf import flatten_bytes
+
+# Right
+def _load_library():
+    try:
+        from flatten_pdf import FlattenError, flatten_bytes
+    except ImportError as error:
+        raise ToolError(INSTALL_HINT) from error
+    return flatten_bytes, FlattenError
+```
+
+`app/registry.py` is what makes the tab report itself unavailable.
+`tests/test_flatten_api.py::TestWhenTheLibraryIsMissing` pins this behaviour.
+
+## Outcomes come from the library, not from guesswork
+
+`flatten_bytes` returns bytes *and* a result. `result.degraded` being true is exactly what "needs
+review" means, and the output is still usable and still goes in the ZIP. Only a raised
+`FlattenError` counts as a failure, and those files are left out. Use `result.verdict.reason` for
+the explanation rather than inventing wording.
+
+## Settings are duplicated on purpose
+
+`FlattenSettings` mirrors the library's `FlattenOptions` so the form can be rendered and validated
+without the library installed. `tests/test_flatten_options.py::TestLibraryAgreement` fails if the
+defaults or engine list drift. Fix the duplicate; do not delete the test.
+
+One bad document must never end the batch, and the batch must never be a single blocking request.

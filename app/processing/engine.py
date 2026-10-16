@@ -11,7 +11,7 @@ import os
 import re
 import threading
 import urllib.parse
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
@@ -21,6 +21,16 @@ import pandas as pd
 import requests
 from PIL import Image
 
+from ..events import (
+    LEVEL_FAIL,
+    LEVEL_INFO,
+    LEVEL_OK,
+    LEVEL_SKIP,
+    LEVEL_WARNING,
+    Event,
+    EventCallback,
+    ToolError,
+)
 from .config import ProcessingConfig
 from .constants import (
     DOWNLOAD_TIMEOUT_SECONDS,
@@ -34,12 +44,6 @@ from .images import compress_and_save, resize_to_box
 from .naming import build_auto_filename, clean_string, sanitise_target_image_name
 from .validation import HMY_CODE_COLUMNS, HMY_ID_COLUMNS
 
-LEVEL_INFO = "info"
-LEVEL_OK = "ok"
-LEVEL_SKIP = "skip"
-LEVEL_WARNING = "warning"
-LEVEL_FAIL = "fail"
-
 PROCESS_LOG_NAME = "Process_Log.csv"
 FAILED_LOG_STEM = "Failed_Log"
 
@@ -47,28 +51,8 @@ _SOURCE_ENCODINGS = ("utf-8-sig", "latin-1")
 _P_CODE_PATH = re.compile(r"/dmslivecafe/2/\d+/")
 
 
-class ProcessingError(Exception):
+class ProcessingError(ToolError):
     """A run could not start or complete."""
-
-
-@dataclass(frozen=True)
-class Event:
-    """One line of progress from a run."""
-
-    level: str
-    message: str
-    row: int | None = None
-    processed: int = 0
-    total: int = 0
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "level": self.level,
-            "message": self.message,
-            "row": self.row,
-            "processed": self.processed,
-            "total": self.total,
-        }
 
 
 @dataclass
@@ -90,9 +74,6 @@ class RunSummary:
             "skipped": self.skipped,
             "cancelled": self.cancelled,
         }
-
-
-EventCallback = Callable[[Event], None]
 
 
 def run(

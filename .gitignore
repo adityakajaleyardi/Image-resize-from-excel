@@ -43,6 +43,14 @@ Logs/
 /UnitMapping.csv
 /URL_Variants.csv
 
+# Email exports and anything decoded out of them. These carry resident names,
+# addresses and lease details, so they never go near the repository.
+/EmailBody.*
+/*Email*.csv
+/*Email*.xlsx
+/html/
+/images/
+
 # Backup files
 *- Copy.py
 *.bak
