@@ -145,9 +145,33 @@ body {
 }
 
 .site-footer {
-  margin: 3rem 0 2rem;
+  margin: 3rem 0 0;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1.1rem;
+  padding-bottom: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.footer-inner strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 }
 
 /* Page intro */
@@ -822,7 +846,12 @@ a {
 }
 
 .page-home .site-footer {
-  margin: 0 0 1.25rem;
+  margin: 0;
+}
+
+.page-home .footer-inner {
+  padding-top: 0.8rem;
+  padding-bottom: 1rem;
 }
 
 .hero {

@@ -13,6 +13,9 @@ from pathlib import Path
 #: yet, so keep this the single place that decides what the suite is called.
 APP_NAME = "Internal Tools"
 
+#: Shown in the footer of every page, matching the launchpad's own footer.
+APP_MAINTAINER = "Aditya Kajale"
+
 #: Environment variables are read as `<prefix>_<NAME>`. The old single-tool
 #: names are still honoured so an existing deployment keeps working.
 ENV_PREFIX = "TOOLKIT"

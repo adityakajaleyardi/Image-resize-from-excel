@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.registry import TOOLS, get_tool
+from app.settings import APP_MAINTAINER
 from tests.conftest import SOURCE_HEADER
 
 VALID_SETTINGS = {
@@ -68,6 +69,13 @@ class TestPages:
     def test_the_home_page_leaves_the_navigation_to_the_tiles(self, client):
         response = client.get("/")
         assert 'class="site-nav"' not in response.text
+
+    def test_every_page_names_its_maintainer(self, client):
+        pages = ["/", "/help"] + [path for tool in TOOLS for path in (tool.path, tool.help_path)]
+        for page in pages:
+            response = client.get(page)
+            assert response.status_code == 200, page
+            assert f"Maintained by <strong>{APP_MAINTAINER}</strong>" in response.text, page
 
     def test_the_suite_help_page_links_to_every_tool(self, client):
         response = client.get("/help")

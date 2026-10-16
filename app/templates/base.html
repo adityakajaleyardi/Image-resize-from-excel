@@ -50,11 +50,14 @@
   </main>
 
   <footer class="site-footer">
-    <div class="shell">
-      {# The home page has a build tile carrying the version already. #}
-      {% if active_page != 'home' %}Version {{ version }} &middot; {% endif %}
-      {# A tool holding sensitive output sets its own, shorter window. #}
-      Runs deleted after {{ tool_retention_hours or retention_hours }} hours.
+    <div class="shell footer-inner">
+      <span>
+        {# The home page has a build tile carrying the version already. #}
+        {% if active_page != 'home' %}Version {{ version }} &middot; {% endif %}
+        {# A tool holding sensitive output sets its own, shorter window. #}
+        Runs deleted after {{ tool_retention_hours or retention_hours }} hours.
+      </span>
+      <span>Maintained by <strong>{{ app_maintainer }}</strong></span>
     </div>
   </footer>
 

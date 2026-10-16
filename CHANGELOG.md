@@ -11,6 +11,9 @@ Names the production team chose, and a pass over the help pages for the people w
 use them.
 
 ### Changed
+- **Every page footer now reads "Maintained by Aditya Kajale"**, laid out like the Res Service
+  Launchpad footer (a rule above, details on the left, maintainer on the right) in this app's
+  colours. The name lives in `APP_MAINTAINER` in `app/settings.py`.
 - **The install is ready to hand to whoever hosts this.** `requirements-folder.txt` pointed at a
   path on one laptop, so Images by Client could not be installed by anyone else; the
   `image-from-folder` library now has a repository and the file points at it, like the other two.
